@@ -1,0 +1,37 @@
+service: my-go-service
+
+provider:
+  name: aws
+  runtime: go1.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: arn:aws:s3:::*
+  environment:
+    S3_BUCKET: ${self:custom.S3_BUCKET}
+
+custom:
+  S3_BUCKET: iopipe-reports
+
+package:
+ exclude:
+   - ./**
+ include:
+   - ./bin/**
+
+functions:
+  hello:
+    handler: bin/hello
+    events:
+      - http:
+          path: hello
+          method: post
+
+resources:
+  Resources:
+    S3BucketPhotos:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.S3_BUCKET}
+        # add additional custom bucket configuration here
