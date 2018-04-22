@@ -44,8 +44,8 @@ func NewHandlerError(err interface{}, isPanic bool) *handlerError {
 }
 
 type panicErrorStackFrame struct {
-	Path  string `json:"path"`
-	Line  int32  `json:"line"`
+	Path     string `json:"path"`
+	Line     int32  `json:"line"`
 	Function string `json:"function"`
 }
 
@@ -100,8 +100,8 @@ func formatFrame(inputFrame runtime.Frame) *panicErrorStackFrame {
 	function := inputFrame.Function
 
 	return &panicErrorStackFrame{
-		Path:  path,
-		Line:  line,
+		Path:     path,
+		Line:     line,
 		Function: function,
 	}
 }

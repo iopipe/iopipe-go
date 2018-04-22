@@ -3,7 +3,7 @@ package iopipe
 import "fmt"
 
 type LoggerPluginConfig struct {
-	Key string
+	Key             string
 	wrapperInstance wrapper
 }
 

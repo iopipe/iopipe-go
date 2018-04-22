@@ -69,7 +69,6 @@ func newHandler(handlerSymbol interface{}) lambdaHandler {
 		return errorHandler(err)
 	}
 
-
 	return func(ctx context.Context, payload interface{}) (interface{}, error) {
 		// construct arguments
 		var args []reflect.Value

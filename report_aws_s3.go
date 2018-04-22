@@ -12,6 +12,7 @@ import (
 // UploadFileToS3 will upload a single file to S3, it will require a pre-built aws session
 // and will set file info like content type and encryption on the uploaded file.
 var awsSharedSession *session.Session
+
 func UploadFileToS3(fileName, fileContents string) {
 	var err error
 	// Create a single AWS session (we can re use this if we're uploading many files)
@@ -27,11 +28,11 @@ func UploadFileToS3(fileName, fileContents string) {
 	svc := s3manager.NewUploader(awsSharedSession)
 
 	fmt.Println("Starting AWS upload")
-	_, err = svc.Upload( &s3manager.UploadInput{
+	_, err = svc.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(os.Getenv("S3_BUCKET")),
 		Key:    aws.String(fileName),
 		Body:   bytes.NewReader([]byte(fileContents)),
-		ACL: 	aws.String("public-read"),
+		ACL:    aws.String("public-read"),
 	})
 	fmt.Println("Finished AWS upload")
 	fmt.Println(

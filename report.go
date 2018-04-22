@@ -23,8 +23,8 @@ type Report struct {
 	AWS           AWSReportDetails         `json:"aws"`
 	Environment   EnvironmentReportDetails `json:"environment"`
 	ColdStart     bool                     `json:"coldstart"`
-	Errors     	  *handlerError            `json:"errors,omitempty"`
-	Plugins       []interface{}        	   `json:"plugins,omitempty"`
+	Errors        *handlerError            `json:"errors,omitempty"`
+	Plugins       []interface{}            `json:"plugins,omitempty"`
 }
 
 type EnvironmentReportDetails struct {

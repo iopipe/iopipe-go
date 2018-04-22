@@ -19,17 +19,16 @@ type wrapper struct {
 	deadline        time.Time
 	lambdaContext   *lambdacontext.LambdaContext
 	reportSending   bool
-	agent			*agent
-	plugins 		[]Plugin
+	agent           *agent
+	plugins         []Plugin
 }
-
 
 func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 
 	w := &wrapper{
 		originalHandler: handler,
 		wrappedHandler:  newHandler(handler),
-		agent: agentInstance,
+		agent:           agentInstance,
 	}
 
 	var plugins []Plugin
@@ -54,7 +53,6 @@ func (w *wrapper) PreInvoke(context context.Context) {
 	w.deadline, _ = context.Deadline()
 	w.lambdaContext, _ = lambdacontext.FromContext(context)
 }
-
 
 func (w *wrapper) RunHook(hook string) {
 	for _, plugin := range w.plugins {
@@ -81,7 +79,7 @@ func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (interface{},
 			timeoutWindow = *w.agent.TimeoutWindow
 		}
 
-		<- time.After(time.Until(w.deadline.Add(- timeoutWindow)))
+		<-time.After(time.Until(w.deadline.Add(- timeoutWindow)))
 		w.Report(NewHandlerError(fmt.Errorf("timeout exceeded"), false))
 	}()
 
@@ -131,7 +129,6 @@ func wrapHandler(handler interface{}, agentInstance *agent) lambdaHandler {
 		return response, err
 	}
 }
-
 
 func (w *wrapper) prepareReport(err *handlerError) {
 	startTime := w.startTime
@@ -186,7 +183,7 @@ func (w *wrapper) prepareReport(err *handlerError) {
 			},
 		},
 		ColdStart: COLD_START,
-		Errors: err,
-		Plugins: pluginsMeta,
+		Errors:    err,
+		Plugins:   pluginsMeta,
 	}
 }

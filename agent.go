@@ -3,15 +3,15 @@ package iopipe
 import "time"
 
 type AgentConfig struct {
-	Token         *string
-	TimeoutWindow *time.Duration
-	Enabled       *bool
+	Token               *string
+	TimeoutWindow       *time.Duration
+	Enabled             *bool
 	PluginInstantiators *[]PluginInstantiator
 }
 
 type agent struct {
 	*AgentConfig
-	Plugins       []Plugin
+	Plugins []Plugin
 }
 
 func NewAgent(config AgentConfig) *agent {
@@ -31,12 +31,11 @@ func NewAgent(config AgentConfig) *agent {
 
 	return &agent{
 		AgentConfig: &AgentConfig{
-			Token:         config.Token,
-			TimeoutWindow: timeoutWindow,
-			Enabled:       enabled,
+			Token:               config.Token,
+			TimeoutWindow:       timeoutWindow,
+			Enabled:             enabled,
 			PluginInstantiators: config.PluginInstantiators,
 		},
-
 	}
 }
 

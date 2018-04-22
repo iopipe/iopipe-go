@@ -12,7 +12,7 @@ func TestNewPanicError(t *testing.T) {
 	Convey("Given a function that wraps a function that panics", t, func() {
 		var panicErr *handlerError
 
-		recoverAndPanicWrapper := func (f func()) {
+		recoverAndPanicWrapper := func(f func()) {
 			defer func() {
 				if err := recover(); err != nil {
 					panic(err)
@@ -25,11 +25,11 @@ func TestNewPanicError(t *testing.T) {
 			})
 		}
 
-		f := func () {
+		f := func() {
 			panic(fmt.Errorf("i am a throwing function"))
 		}
 
-		main := func () {
+		main := func() {
 			defer func() {
 				if err := recover(); err != nil {
 					panicErr = NewHandlerError(err, true)
@@ -39,7 +39,6 @@ func TestNewPanicError(t *testing.T) {
 			recoverAndPanicWrapper(f)
 			fmt.Println("Returned normally from f.")
 		}
-
 
 		Convey("When the wrapper function is called inside another function", func() {
 			main()
