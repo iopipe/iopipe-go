@@ -8,6 +8,7 @@ import (
 	"time"
 	"os"
 	"runtime"
+	"sync"
 )
 
 type wrapper struct {
@@ -55,11 +56,20 @@ func (w *wrapper) PreInvoke(context context.Context) {
 }
 
 func (w *wrapper) RunHook(hook string) {
+	var wg sync.WaitGroup
+	wg.Add(len(w.plugins))
+
 	for _, plugin := range w.plugins {
-		if plugin != nil {
-			plugin.RunHook(hook)
-		}
+		go func() {
+			defer wg.Done()
+
+			if plugin != nil {
+				plugin.RunHook(hook)
+			}
+		}()
 	}
+
+	wg.Wait()
 }
 
 func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (interface{}, error) {
