@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"encoding/json"
 )
 
 const defaultErrorFrameCount = 32
@@ -18,30 +19,35 @@ func getErrorType(err interface{}) string {
 	}
 }
 
-type handlerError struct {
+type invocationError struct {
 	Message    string                  `json:"message"`
 	Type       string                  `json:"type"`
 	StackTrace []*panicErrorStackFrame `json:"stackTrace,omitempty"`
 }
 
-func NewHandlerError(err interface{}, isPanic bool) *handlerError {
+func (h *invocationError) Error() string  {
+	errorJSON, _ := json.Marshal(h)
+	return string(errorJSON)
+}
+
+func NewPanicInvocationError(err interface{}) *invocationError {
 	if err == nil {
 		return nil
 	}
 
-	const framesToHide = framesToPanicInfo + 4 // here (NewHandlerError) -> handler defer func -> 2 for panic -> actual error
-	if isPanic {
-		panicInfo := getPanicInfo(err, framesToHide)
-		return &handlerError{
-			Message:    panicInfo.Message,
-			Type:       getErrorType(err),
-			StackTrace: panicInfo.StackTrace,
-		}
-	} else {
-		return &handlerError{
-			Message: getErrorMessage(err),
-			Type:    getErrorType(err),
-		}
+	const framesToHide = framesToPanicInfo + 4 // here (NewPanicInvocationError) -> handler defer func -> 2 for panic -> actual error
+	panicInfo := getPanicInfo(err, framesToHide)
+	return &invocationError{
+		Message:    panicInfo.Message,
+		Type:       getErrorType(err),
+		StackTrace: panicInfo.StackTrace,
+	}
+}
+
+func NewInvocationError(err error) *invocationError {
+	return &invocationError{
+		Message: getErrorMessage(err),
+		Type:    getErrorType(err),
 	}
 }
 

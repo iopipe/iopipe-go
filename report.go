@@ -23,7 +23,7 @@ type Report struct {
 	AWS           AWSReportDetails         `json:"aws"`
 	Environment   EnvironmentReportDetails `json:"environment"`
 	ColdStart     bool                     `json:"coldstart"`
-	Errors        *handlerError            `json:"errors,omitempty"`
+	Errors        *invocationError         `json:"errors,omitempty"`
 	Plugins       []interface{}            `json:"plugins,omitempty"`
 }
 
@@ -55,6 +55,8 @@ type EnvironmentGoMemoryUsage struct {
 	Sys        int `json:"sys"`
 	NumGC      int `json:"numGC"`
 }
+
+type Reporter func(report Report)
 
 //{
 // ...

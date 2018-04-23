@@ -7,12 +7,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/aws"
+	"encoding/json"
 )
 
 var awsSharedSession *session.Session
 
-func UploadFileToS3(fileName, fileContents string) {
+func ReportToS3(report Report) {
 	var err error
+
+	reportJSON, _ := json.MarshalIndent(report, "", "  ")
+	fileName := fmt.Sprintf("%s.json", report.AWS.AWSRequestId)
+	fileContents := string(reportJSON)
 
 	// Create a single AWS session (we can re use this if we're uploading many files)
 	if awsSharedSession == nil {
@@ -37,7 +42,7 @@ func UploadFileToS3(fileName, fileContents string) {
 
 	fmt.Println("Finished AWS upload")
 	fmt.Println(
-		fmt.Sprintf("Report available at https://s3.amazonaws.com/%s/%s",
+		fmt.Sprintf("PostInvoke available at https://s3.amazonaws.com/%s/%s",
 			os.Getenv("S3_BUCKET"),
 			fileName,
 		),

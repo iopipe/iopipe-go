@@ -11,16 +11,16 @@ func testFunctionThatPanics() {
 	panic(fmt.Errorf("i am a throwing function"))
 }
 
-func TestNewHandlerError(t *testing.T) {
+func TestNewPanicInvocationError(t *testing.T) {
 
 	// Only pass t into top-level Convey calls
-	Convey("Given a parent function that recovers from panics, stores the error using NewHandlerError, and wraps a panicking child function", t, func() {
-		var panicErr *handlerError
+	Convey("Given a parent function that recovers from panics, stores the error using NewPanicInvocationError, and wraps a panicking child function", t, func() {
+		var panicErr *invocationError
 
 		parentWithPanickyChild := func() {
 			defer func() {
 				if err := recover(); err != nil {
-					panicErr = NewHandlerError(err, true)
+					panicErr = NewPanicInvocationError(err)
 				}
 			}()
 
@@ -38,7 +38,7 @@ func TestNewHandlerError(t *testing.T) {
 		Convey("When the parent function is called", func() {
 			parentWithPanickyChild()
 
-			Convey("The first stack frame in NewHandlerError refers to the panic inside the child function", func() {
+			Convey("The first stack frame in NewPanicInvocationError refers to the panic inside the child function", func() {
 				So(*panicErr.StackTrace[0], ShouldResemble, panicErrorStackFrame{
 					Path:     "github.com/iopipe/iopipe-go/panic_test.go",
 					Line:     11,
@@ -148,13 +148,6 @@ func TestFormatFrame(t *testing.T) {
 }
 
 func TestRuntimeStackTrace(t *testing.T) {
-	// implementing the test in the inner function to simulate an
-	// additional stack frame that would exist in real life due to the
-	// defer function.
-	testRuntimeStackTrace(t)
-}
-
-func testRuntimeStackTrace(t *testing.T) {
 	Convey("Runtime stack trace's first element is where the panic happens", t, func() {
 		const framesToHide = framesToPanicInfo
 		panicInfo := getPanicInfo("Panic time!", framesToHide)
@@ -166,7 +159,7 @@ func testRuntimeStackTrace(t *testing.T) {
 		frame := panicInfo.StackTrace[0]
 
 		So(frame.Path, ShouldEqual, "github.com/iopipe/iopipe-go/panic_test.go")
-		So(frame.Line, ShouldEqual, 160)
-		So(frame.Function, ShouldEqual, "testRuntimeStackTrace.func1")
+		So(frame.Line, ShouldEqual, 153)
+		So(frame.Function, ShouldEqual, "TestRuntimeStackTrace.func1")
 	})
 }

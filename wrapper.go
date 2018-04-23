@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"fmt"
-	"encoding/json"
 	"time"
 	"os"
 	"runtime"
@@ -13,6 +12,7 @@ import (
 
 type wrapper struct {
 	report          Report
+	reporter        Reporter
 	originalHandler interface{}
 	wrappedHandler  lambdaHandler
 	startTime       time.Time
@@ -53,6 +53,7 @@ func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 func (w *wrapper) PreInvoke(context context.Context) {
 	w.deadline, _ = context.Deadline()
 	w.lambdaContext, _ = lambdacontext.FromContext(context)
+	w.RunHook(HOOK_PRE_INVOKE)
 }
 
 func (w *wrapper) RunHook(hook string) {
@@ -72,14 +73,12 @@ func (w *wrapper) RunHook(hook string) {
 	wg.Wait()
 }
 
-func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (interface{}, error) {
-	w.RunHook(HOOK_PRE_INVOKE)
+func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
 	defer func() {
-		if err := recover(); err != nil {
+		if panicErr := recover(); panicErr != nil {
 			// the stack trace the client gets will be a bit verbose with mentions of the wrapper
-			w.Report(NewHandlerError(err, true))
-
-			panic(err)
+			w.PostInvoke(NewPanicInvocationError(panicErr))
+			panic(panicErr)
 		}
 	}()
 
@@ -90,20 +89,14 @@ func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (interface{},
 		}
 
 		<-time.After(time.Until(w.deadline.Add(- timeoutWindow)))
-		w.Report(NewHandlerError(fmt.Errorf("timeout exceeded"), false))
+		w.PostInvoke(fmt.Errorf("timeout exceeded"))
 	}()
 
 	w.startTime = time.Now()
-	response, err := w.wrappedHandler(ctx, payload)
-
-	return response, err
+	return w.wrappedHandler(ctx, payload)
 }
 
-func (w *wrapper) PostInvoke() {
-	w.RunHook(HOOK_POST_INVOKE)
-}
-
-func (w *wrapper) Report(err *handlerError) {
+func (w *wrapper) PostInvoke(err error) {
 	if w.reportSending {
 		return
 	}
@@ -114,12 +107,20 @@ func (w *wrapper) Report(err *handlerError) {
 	w.endTime = time.Now()
 	w.reportSending = true
 
-	w.prepareReport(err)
+	var (
+		ok bool
+		hErr *invocationError
+	)
 
-	reportJSON, _ := json.MarshalIndent(w.report, "", "  ")
+	if hErr, ok = err.(*invocationError); !ok {
+		hErr = NewInvocationError(err)
+	}
+	w.prepareReport(hErr)
 
-	// Report to AWS
-	UploadFileToS3(fmt.Sprintf("%s.json", w.report.AWS.AWSRequestId), string(reportJSON))
+	// PostInvoke
+	if w.reporter != nil {
+		w.reporter(w.report)
+	}
 
 	w.RunHook(HOOK_POST_REPORT)
 }
@@ -132,15 +133,14 @@ func wrapHandler(handler interface{}, agentInstance *agent) lambdaHandler {
 
 		handlerWrapper.PreInvoke(context)
 		response, err := handlerWrapper.Invoke(context, payload)
-		handlerWrapper.PostInvoke()
-		handlerWrapper.Report(NewHandlerError(err, false))
+		handlerWrapper.PostInvoke(err)
 
 		COLD_START = false
 		return response, err
 	}
 }
 
-func (w *wrapper) prepareReport(err *handlerError) {
+func (w *wrapper) prepareReport(err *invocationError) {
 	startTime := w.startTime
 	endTime := w.endTime
 	deadline := w.deadline
