@@ -14,13 +14,13 @@ type agent struct {
 	Plugins []Plugin
 }
 
-func NewAgent(config AgentConfig) *agent {
-	// defaults
-	defaultTimeoutWindow := time.Duration(150 * time.Millisecond)
-	defaultEnabled := true
+// defaults
+var defaultAgentConfigTimeoutWindow = time.Duration(150 * time.Millisecond)
+var defaultAgentConfigEnabled = true
 
-	timeoutWindow := &defaultTimeoutWindow
-	enabled := &defaultEnabled
+func NewAgent(config AgentConfig) *agent {
+	timeoutWindow := &defaultAgentConfigTimeoutWindow
+	enabled := &defaultAgentConfigEnabled
 
 	if config.Enabled != nil {
 		enabled = config.Enabled
