@@ -84,12 +84,21 @@ func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response int
 
 	go func() {
 		timeoutWindow := 0 * time.Millisecond
-		if w.agent.TimeoutWindow != nil {
+		if w.agent != nil && w.agent.TimeoutWindow != nil {
 			timeoutWindow = *w.agent.TimeoutWindow
 		}
 
-		<-time.After(time.Until(w.deadline.Add(- timeoutWindow)))
-		w.PostInvoke(fmt.Errorf("timeout exceeded"))
+		if w.deadline.IsZero() {
+			return
+		}
+
+		select {
+		// naturally the deadline should occur before the context is closed
+		case <-time.After(time.Until(w.deadline.Add(- timeoutWindow))):
+			w.PostInvoke(fmt.Errorf("timeout exceeded"))
+		case <-ctx.Done():
+			return // returning not to leak the goroutine
+		}
 	}()
 
 	w.startTime = time.Now()
@@ -100,12 +109,12 @@ func (w *wrapper) PostInvoke(err error) {
 	if w.reportSending {
 		return
 	}
-	w.RunHook(HOOK_POST_INVOKE)
+	w.reportSending = true
 
+	w.RunHook(HOOK_POST_INVOKE)
 	w.RunHook(HOOK_PRE_REPORT)
 
 	w.endTime = time.Now()
-	w.reportSending = true
 
 	var (
 		ok bool
@@ -145,6 +154,11 @@ func (w *wrapper) prepareReport(err *invocationError) {
 	endTime := w.endTime
 	deadline := w.deadline
 	lc := w.lambdaContext
+	if lc == nil {
+		lc = &lambdacontext.LambdaContext{
+			AwsRequestID: "ERROR",
+		}
+	}
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
