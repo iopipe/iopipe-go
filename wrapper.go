@@ -60,13 +60,13 @@ func (w *wrapper) RunHook(hook string) {
 	wg.Add(len(w.plugins))
 
 	for _, plugin := range w.plugins {
-		go func() {
+		go func(plugin Plugin) {
 			defer wg.Done()
 
 			if plugin != nil {
 				plugin.RunHook(hook)
 			}
-		}()
+		}(plugin)
 	}
 
 	wg.Wait()
