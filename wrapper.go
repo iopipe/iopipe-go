@@ -8,10 +8,11 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"reflect"
 )
 
 type wrapper struct {
-	report          Report
+	report          *Report
 	reporter        Reporter
 	originalHandler interface{}
 	wrappedHandler  lambdaHandler
@@ -149,7 +150,11 @@ func wrapHandler(handler interface{}, agentInstance *agent) lambdaHandler {
 	}
 }
 
-func (w *wrapper) prepareReport(err *invocationError) {
+func (w *wrapper) prepareReport(invErr *invocationError) {
+	if w.report != nil {
+		return
+	}
+
 	startTime := w.startTime
 	endTime := w.endTime
 	deadline := w.deadline
@@ -167,7 +172,13 @@ func (w *wrapper) prepareReport(err *invocationError) {
 		pluginsMeta[index] = plugin.Meta()
 	}
 
-	w.report = Report{
+	var errs interface{}
+	errs = invErr
+	if reflect.ValueOf(errs).IsNil() {
+		errs = &struct {}{}
+	}
+
+	w.report = &Report{
 		ClientID:      "TODO: some-client-id",
 		ProjectId:     nil,
 		InstallMethod: "TODO: manual",
@@ -207,7 +218,7 @@ func (w *wrapper) prepareReport(err *invocationError) {
 			},
 		},
 		ColdStart: COLD_START,
-		Errors:    err,
+		Errors:    errs,
 		Plugins:   pluginsMeta,
 	}
 }
