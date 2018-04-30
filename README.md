@@ -1,4 +1,4 @@
-# IOpipe Agent for Go
+# IOpipe Agent for Go (alpha)
 Go agent for AWS Lambda metrics, tracing, profiling &amp; analytics
 
 ## Contributing
