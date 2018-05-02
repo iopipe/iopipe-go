@@ -56,7 +56,7 @@ type EnvironmentGoMemoryUsage struct {
 	NumGC      int `json:"numGC"`
 }
 
-type Reporter func(report *Report)
+type Reporter func(report *Report) error
 
 //{
 // ...
