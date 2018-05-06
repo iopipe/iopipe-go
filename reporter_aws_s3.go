@@ -12,7 +12,7 @@ import (
 
 var awsSharedSession *session.Session
 
-func ReportToS3(report Report) {
+func ReportToS3(report *Report) error {
 	var err error
 
 	reportJSON, _ := json.MarshalIndent(report, "", "  ")
