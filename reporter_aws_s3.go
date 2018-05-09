@@ -23,7 +23,7 @@ func ReportToS3(report *Report) error {
 	if awsSharedSession == nil {
 		awsSharedSession, err = session.NewSession()
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -40,6 +40,10 @@ func ReportToS3(report *Report) error {
 		ACL:    aws.String("public-read"),
 	})
 
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("Finished AWS upload")
 	fmt.Println(
 		fmt.Sprintf("PostInvoke available at https://s3.amazonaws.com/%s/%s",
@@ -48,7 +52,5 @@ func ReportToS3(report *Report) error {
 		),
 	)
 
-	if err != nil {
-		panic(err)
-	}
+	return nil
 }

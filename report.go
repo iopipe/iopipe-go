@@ -1,7 +1,7 @@
 package iopipe
 
 type AWSReportDetails struct {
-	FunctionName             string `json:"functionName""`
+	FunctionName             string `json:"functionName"`
 	FunctionVersion          string `json:"functionVersion"`
 	AWSRequestId             string `json:"awsRequestId"`
 	InvokedFunctionArn       string `json:"invokedFunctionArn"`

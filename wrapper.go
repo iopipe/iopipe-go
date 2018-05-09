@@ -44,6 +44,7 @@ func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 	}
 
 	w.plugins = plugins
+	w.reporter = ReportToIOPipe
 
 	w.RunHook(HOOK_PRE_SETUP)
 
@@ -129,7 +130,11 @@ func (w *wrapper) PostInvoke(err error) {
 
 	// PostInvoke
 	if w.reporter != nil {
-		w.reporter(w.report)
+		err := w.reporter(w.report)
+		if err != nil {
+			// TODO: figure out what to do when invoke errors
+			fmt.Println("Reporting errored: ", err)
+		}
 	}
 
 	w.RunHook(HOOK_POST_REPORT)
@@ -179,9 +184,9 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 	}
 
 	w.report = &Report{
-		ClientID:      "TODO: some-client-id",
+		ClientID:      *w.agent.Token,
 		ProjectId:     nil,
-		InstallMethod: "TODO: manual",
+		InstallMethod: "manual", //TODO: what else can this value become ?
 		Duration:      int(endTime.Sub(startTime).Nanoseconds()),
 		ProcessId:     PROCESS_ID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
