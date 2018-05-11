@@ -8,3 +8,4 @@ Please refer to our [code of conduct](https://github.com/iopipe/iopipe-go/blob/m
 ## License
 
 Apache 2.0
+
