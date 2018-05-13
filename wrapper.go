@@ -5,10 +5,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"fmt"
 	"time"
-	"os"
-	"runtime"
 	"sync"
-	"reflect"
+	"runtime"
+	"os"
 )
 
 type wrapper struct {
@@ -178,13 +177,18 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 	}
 
 	var errs interface{}
-	errs = invErr
-	if reflect.ValueOf(errs).IsNil() {
-		errs = &struct {}{}
+	errs = &struct {}{}
+	if invErr != nil {
+		errs = invErr
+	}
+
+	token := ""
+	if w.agent != nil {
+		token = w.agent.Token
 	}
 
 	w.report = &Report{
-		ClientID:      *w.agent.Token,
+		ClientID:      token,
 		ProjectId:     nil,
 		InstallMethod: "manual", //TODO: what else can this value become ?
 		Duration:      int(endTime.Sub(startTime).Nanoseconds()),

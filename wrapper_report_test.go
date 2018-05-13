@@ -2,11 +2,11 @@ package iopipe
 
 import (
 	"testing"
-	"encoding/json"
 	"log"
 	. "github.com/smartystreets/goconvey/convey"
 	"bytes"
 	"text/template"
+	"encoding/json"
 )
 
 func TestWrapper_prepareReport(t *testing.T) {
@@ -40,8 +40,8 @@ func TestWrapper_prepareReport(t *testing.T) {
 
 const emptyReport = `
 {
-  "client_id": "TODO: some-client-id",
-  "installMethod": "TODO: manual",
+  "client_id": "",
+  "installMethod": "manual",
   "duration": 0,
   "processId": "{{.ProcessId}}",
   "timestamp": -6795364578871,

@@ -1,9 +1,11 @@
 package iopipe
 
-import "time"
+import (
+	"time"
+)
 
 type AgentConfig struct {
-	Token               *string
+	Token               string
 	TimeoutWindow       *time.Duration
 	Enabled             *bool
 	PluginInstantiators *[]PluginInstantiator
