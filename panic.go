@@ -21,8 +21,9 @@ func getErrorType(err interface{}) string {
 
 type invocationError struct {
 	Message    string                  `json:"message"`
-	Type       string                  `json:"type"`
-	StackTrace []*panicErrorStackFrame `json:"stackTrace,omitempty"`
+	Name       string                  `json:"name"`
+	StackTrace []*panicErrorStackFrame `json:"-"`
+	Stack      string            	   `json:"stack"`
 }
 
 func (h *invocationError) Error() string  {
@@ -39,15 +40,19 @@ func NewPanicInvocationError(err interface{}) *invocationError {
 	panicInfo := getPanicInfo(err, framesToHide)
 	return &invocationError{
 		Message:    panicInfo.Message,
-		Type:       getErrorType(err),
+		Name:       getErrorType(err),
 		StackTrace: panicInfo.StackTrace,
 	}
 }
 
 func NewInvocationError(err error) *invocationError {
+	if err == nil {
+		return nil
+	}
+
 	return &invocationError{
 		Message: getErrorMessage(err),
-		Type:    getErrorType(err),
+		Name:    getErrorType(err),
 	}
 }
 

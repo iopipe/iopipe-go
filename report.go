@@ -1,7 +1,7 @@
 package iopipe
 
 type AWSReportDetails struct {
-	FunctionName             string `json:"functionName""`
+	FunctionName             string `json:"functionName"`
 	FunctionVersion          string `json:"functionVersion"`
 	AWSRequestId             string `json:"awsRequestId"`
 	InvokedFunctionArn       string `json:"invokedFunctionArn"`
@@ -23,8 +23,8 @@ type Report struct {
 	AWS           AWSReportDetails         `json:"aws"`
 	Environment   EnvironmentReportDetails `json:"environment"`
 	ColdStart     bool                     `json:"coldstart"`
-	Errors        *invocationError         `json:"errors,omitempty"`
-	Plugins       []interface{}            `json:"plugins,omitempty"`
+	Errors        interface{}              `json:"errors"`
+	Plugins       []interface{}            `json:"plugins"`
 }
 
 type EnvironmentReportDetails struct {
@@ -56,7 +56,7 @@ type EnvironmentGoMemoryUsage struct {
 	NumGC      int `json:"numGC"`
 }
 
-type Reporter func(report Report)
+type Reporter func(report *Report) error
 
 //{
 // ...

@@ -131,8 +131,9 @@ func TestWrapper_Invoke(t *testing.T) {
 			var actualMessage string
 
 			w.wrappedHandler = wrapperHandlerThatPanics
-			w.reporter = func(report Report) {
-				actualMessage = report.Errors.Message
+			w.reporter = func(report *Report) error {
+				actualMessage = report.Errors.(*invocationError).Message
+				return nil
 			}
 
 			So(func() {
@@ -151,8 +152,9 @@ func TestWrapper_Invoke(t *testing.T) {
 
 			w.deadline = time.Now().Add(100 * time.Millisecond)
 			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.reporter = func(report Report) {
+			w.reporter = func(report *Report) error {
 				reporterCalled = true
+				return nil
 			}
 
 			w.Invoke(expectedContext, expectedPayload)
@@ -170,8 +172,9 @@ func TestWrapper_Invoke(t *testing.T) {
 
 			w.deadline = time.Now().Add(100 * time.Millisecond)
 			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.reporter = func(report Report) {
+			w.reporter = func(report *Report) error {
 				reporterCalled = true
+				return nil
 			}
 
 			w.Invoke(expectedContext, expectedPayload)
@@ -193,8 +196,9 @@ func TestWrapper_Invoke(t *testing.T) {
 			w.agent = &agent{AgentConfig: &AgentConfig{
 				TimeoutWindow: &timeOutWindow,
 			}}
-			w.reporter = func(report Report) {
-				actualMessage = report.Errors.Message
+			w.reporter = func(report *Report) error {
+				actualMessage = report.Errors.(*invocationError).Message
+				return nil
 			}
 
 			w.Invoke(expectedContext, expectedPayload)
@@ -214,8 +218,9 @@ func TestWrapper_Invoke(t *testing.T) {
 			w.agent = &agent{AgentConfig: &AgentConfig{
 				TimeoutWindow: &timeOutWindow,
 			}}
-			w.reporter = func(report Report) {
+			w.reporter = func(report *Report) error {
 				reporterCalled = true
+				return nil
 			}
 
 			w.Invoke(expectedContext, expectedPayload)

@@ -5,13 +5,13 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"fmt"
 	"time"
-	"os"
-	"runtime"
 	"sync"
+	"runtime"
+	"os"
 )
 
 type wrapper struct {
-	report          Report
+	report          *Report
 	reporter        Reporter
 	originalHandler interface{}
 	wrappedHandler  lambdaHandler
@@ -43,6 +43,7 @@ func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 	}
 
 	w.plugins = plugins
+	w.reporter = ReportToIOPipe
 
 	w.RunHook(HOOK_PRE_SETUP)
 
@@ -128,7 +129,11 @@ func (w *wrapper) PostInvoke(err error) {
 
 	// PostInvoke
 	if w.reporter != nil {
-		w.reporter(w.report)
+		err := w.reporter(w.report)
+		if err != nil {
+			// TODO: figure out what to do when invoke errors
+			fmt.Println("Reporting errored: ", err)
+		}
 	}
 
 	w.RunHook(HOOK_POST_REPORT)
@@ -149,7 +154,11 @@ func wrapHandler(handler interface{}, agentInstance *agent) lambdaHandler {
 	}
 }
 
-func (w *wrapper) prepareReport(err *invocationError) {
+func (w *wrapper) prepareReport(invErr *invocationError) {
+	if w.report != nil {
+		return
+	}
+
 	startTime := w.startTime
 	endTime := w.endTime
 	deadline := w.deadline
@@ -167,10 +176,21 @@ func (w *wrapper) prepareReport(err *invocationError) {
 		pluginsMeta[index] = plugin.Meta()
 	}
 
-	w.report = Report{
-		ClientID:      "TODO: some-client-id",
+	var errs interface{}
+	errs = &struct {}{}
+	if invErr != nil {
+		errs = invErr
+	}
+
+	token := ""
+	if w.agent != nil {
+		token = w.agent.Token
+	}
+
+	w.report = &Report{
+		ClientID:      token,
 		ProjectId:     nil,
-		InstallMethod: "TODO: manual",
+		InstallMethod: "manual", //TODO: what else can this value become ?
 		Duration:      int(endTime.Sub(startTime).Nanoseconds()),
 		ProcessId:     PROCESS_ID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
@@ -207,7 +227,7 @@ func (w *wrapper) prepareReport(err *invocationError) {
 			},
 		},
 		ColdStart: COLD_START,
-		Errors:    err,
+		Errors:    errs,
 		Plugins:   pluginsMeta,
 	}
 }

@@ -32,7 +32,7 @@ func main() {
 	timeoutWindow := 100 * time.Millisecond
 
 	agent := iopipe.NewAgent(iopipe.AgentConfig{
-		Token:         &token,
+		Token:         token,
 		TimeoutWindow: &timeoutWindow,
 		Enabled:       &enabled,
 		PluginInstantiators: &[]iopipe.PluginInstantiator{

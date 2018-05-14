@@ -46,7 +46,7 @@ func TestNewAgent(t *testing.T) {
 
 		for _, test := range tests {
 			inputConfig := AgentConfig{
-				Token: &test.inputToken,
+				Token: test.inputToken,
 				Enabled: &test.inputEnabled,
 				TimeoutWindow: &test.inputTimeoutWindow,
 			}
@@ -54,7 +54,7 @@ func TestNewAgent(t *testing.T) {
 			agentWithCustomConfig := NewAgent(inputConfig)
 
 			Convey(fmt.Sprintf(`Config with inputToken "%s" should be mapped corectly in the agent instance`, test.inputToken), func() {
-				So(*agentWithCustomConfig.Token, ShouldEqual, test.inputToken)
+				So(agentWithCustomConfig.Token, ShouldEqual, test.inputToken)
 				So(*agentWithCustomConfig.Enabled, ShouldEqual, test.inputEnabled)
 				So(*agentWithCustomConfig.TimeoutWindow, ShouldEqual, test.inputTimeoutWindow)
 				So(agentWithCustomConfig.Plugins, ShouldBeEmpty)

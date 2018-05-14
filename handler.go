@@ -85,6 +85,7 @@ func newHandler(handlerSymbol interface{}) lambdaHandler {
 			eventType := handlerType.In(handlerType.NumIn() - 1)
 			event := reflect.New(eventType)
 
+			// TODO: I don't think this is even possible
 			if err := json.Unmarshal(payloadBytes, event.Interface()); err != nil {
 				return nil, err
 			}
