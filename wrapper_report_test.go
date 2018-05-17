@@ -3,6 +3,7 @@ package iopipe
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"testing"
 	"text/template"
@@ -21,8 +22,9 @@ func TestWrapper_prepareReport(t *testing.T) {
 			var actualReportJSON interface{}
 			_ = json.Unmarshal(reportJSONBytes, &actualReportJSON)
 
+			emptyReportVersioned := fmt.Sprintf(emptyReport, RUNTIME_VERSION, RUNTIME_VERSION)
 			var expectedReportJson interface{}
-			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, w.report)), &expectedReportJson)
+			_ = json.Unmarshal([]byte(executeTemplateString(emptyReportVersioned, w.report)), &expectedReportJson)
 
 			So(actualReportJSON, ShouldResemble, expectedReportJson)
 		})
@@ -65,7 +67,7 @@ const emptyReport = `
       "LoadTime": {{.Environment.Agent.LoadTime}}
     },
     "go": {
-      "version": "go1.8.7",
+      "version": "%s",
       "memoryUsage": {
         "alloc": {{.Environment.Go.MemoryUsage.Alloc}},
         "totalAlloc": {{.Environment.Go.MemoryUsage.TotalAlloc}},
@@ -75,7 +77,7 @@ const emptyReport = `
     },
     "runtime": {
       "name": "go",
-      "version": "go1.8.7"
+      "version": "%s"
     }
   },
   "coldstart": true,
