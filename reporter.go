@@ -10,15 +10,7 @@ import (
 	"time"
 )
 
-//TODO: WIP for reporting to IOPipe
-func ReportToIOPipe(report *Report) error {
-	var (
-		err            error
-		urlPath        = "v0/event"
-		networkTimeout = 1 * time.Second
-	)
-
-	region := os.Getenv("AWS_REGION")
+func getBaseUrl(region string) string {
 	// array of supported regions so we can easily look up
 	// whether a region has its own collector
 	// using empty structs takes up no space versus using, say, a bool
@@ -31,10 +23,19 @@ func ReportToIOPipe(report *Report) error {
 		"us-west-2":      struct{}{},
 	}
 
-	ipAddress := "metrics-api.iopipe.com"
+	url := "https://metrics-api.iopipe.com/"
 	if _, exists := supportedRegions[region]; exists {
-		ipAddress = fmt.Sprintf("metrics-api.%s.iopipe.com", region)
+		url = fmt.Sprintf("https://metrics-api.%s.iopipe.com/", region)
 	}
+	return url
+}
+
+//TODO: WIP for reporting to IOPipe
+func ReportToIOPipe(report *Report) error {
+	var (
+		err            error
+		networkTimeout = 1 * time.Second
+	)
 
 	tr := &http.Transport{
 		DisableKeepAlives: false,
@@ -46,7 +47,7 @@ func ReportToIOPipe(report *Report) error {
 	reportJSONBytes, _ := json.MarshalIndent(report, "", "  ")
 
 	// TODO defining 443 extraneous
-	reqURL := fmt.Sprintf("https://%s:443/%s", ipAddress, urlPath)
+	reqURL := fmt.Sprintf(getBaseUrl(os.Getenv("region")), "v0/event")
 	req, err := http.NewRequest("POST", reqURL, bytes.NewReader(reportJSONBytes))
 	if err != nil {
 		return err
