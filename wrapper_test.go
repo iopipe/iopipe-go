@@ -83,7 +83,6 @@ func TestWrapper_Invoke(t *testing.T) {
 			defer cancelContext()
 
 			panic(fmt.Sprintf("meow-%d", expectedResponse))
-			return nil, nil
 		}
 		wrapperHandlerThatSleeps := func(ctx context.Context, payload interface{}) (interface{}, error) {
 			defer cancelContext()

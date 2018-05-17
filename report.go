@@ -34,9 +34,9 @@ type EnvironmentReportDetails struct {
 }
 
 type EnvironmentAgent struct {
-	Runtime  string `json:"runtime`
-	Version  string `json:"version`
-	LoadTime int    `json:"load_time`
+	Runtime  string `json:"runtime"`
+	Version  string `json:"version"`
+	LoadTime int    `json:"load_time"`
 }
 
 type EnvironmentRuntime struct {
@@ -72,15 +72,6 @@ type Reporter func(report *Report) error
 //      "vendor": "s",
 //      "vmVersion": "s",
 //      "vmVendor": "s"
-//    },
-//    "nodejs": {
-//      "version": "s",
-//      "memoryUsage": {
-//        "rss": "n"
-//      }
-//    },
-//    "python": {
-//      "version": "s"
 //    },
 //    "host": {
 //      "boot_id": "s"

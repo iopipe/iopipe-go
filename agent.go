@@ -5,13 +5,12 @@ import (
 )
 
 type AgentConfig struct {
-	Token string
-	// Why are these pointers? Maybe let's not
+	Token         string
 	TimeoutWindow *time.Duration
 	Enabled       *bool
 	// We should be passing in plugins here, and the agent should instantiate
 	// them
-	PluginInstantiators *[]PluginInstantiator
+	PluginInstantiators []PluginInstantiator
 }
 
 type agent struct {

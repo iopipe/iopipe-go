@@ -25,7 +25,7 @@ type wrapper struct {
 	plugins         []Plugin
 }
 
-// NewWrapper creats a new wrapper
+// NewWrapper creates a new wrapper
 func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 
 	w := &wrapper{
@@ -35,7 +35,7 @@ func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 	}
 
 	var plugins []Plugin
-	pluginInstantiators := *agentInstance.PluginInstantiators
+	pluginInstantiators := agentInstance.PluginInstantiators
 
 	if pluginInstantiators != nil {
 		plugins = make([]Plugin, len(pluginInstantiators))
@@ -77,6 +77,7 @@ func (w *wrapper) RunHook(hook string) {
 }
 
 func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
+	w.startTime = time.Now()
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			// the stack trace the client gets will be a bit verbose with mentions of the wrapper
@@ -104,7 +105,6 @@ func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response int
 		}
 	}()
 
-	w.startTime = time.Now()
 	return w.wrappedHandler(ctx, payload)
 }
 
@@ -191,8 +191,7 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 
 	w.report = &Report{
 		ClientID:      token,
-		ProjectId:     nil,
-		InstallMethod: "manual", //TODO: what else can this value become ?
+		InstallMethod: "manual",
 		Duration:      int(endTime.Sub(startTime).Nanoseconds()),
 		ProcessId:     PROCESS_ID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
