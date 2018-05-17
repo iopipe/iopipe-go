@@ -1,7 +1,7 @@
 package iopipe
 
 type TestPluginConfig struct {
-	LastHook            string
+	LastHook        string
 	wrapperInstance wrapper
 }
 
@@ -15,10 +15,10 @@ func (p *testPlugin) RunHook(hook string) {
 
 func (p *testPlugin) Meta() interface{} {
 	return struct {
-		Name string `json:"name"`
+		Name     string `json:"name"`
 		LastHook string `json:"lastHook"`
 	}{
-		Name: p.Name(),
+		Name:     p.Name(),
 		LastHook: p.LastHook,
 	}
 }

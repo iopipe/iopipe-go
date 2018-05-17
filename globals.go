@@ -1,10 +1,10 @@
 package iopipe
 
 import (
+	"crypto/rand"
+	"io"
 	"runtime"
 	"time"
-	"io"
-	"crypto/rand"
 )
 
 var (
@@ -19,7 +19,7 @@ const (
 	RUNTIME = "go"
 )
 
-func ProcessId() (string) {
+func ProcessId() string {
 	var uuid UUID
 	io.ReadFull(rand.Reader, uuid[:])
 

@@ -115,7 +115,7 @@ func TestInvokes(t *testing.T) {
 			},
 		},
 		{
-			input:    `"Lambda"`,
+			input: `"Lambda"`,
 			expected: expected{
 				func() *string {
 					result := `Hello "Lambda"!`
@@ -127,7 +127,7 @@ func TestInvokes(t *testing.T) {
 			},
 		},
 		{
-			input:    `"Lambda"`,
+			input: `"Lambda"`,
 			expected: expected{
 				func() *string {
 					result := `Hello "Lambda"!`
@@ -168,7 +168,7 @@ func TestInvokes(t *testing.T) {
 		},
 		{
 			name:     "basic input struct serialization",
-			input:    struct{ Custom int }{ 9001 },
+			input:    struct{ Custom int }{9001},
 			expected: expected{9001, nil},
 			handler: func(event struct{ Custom int }) (int, error) {
 				return event.Custom, nil
@@ -177,7 +177,7 @@ func TestInvokes(t *testing.T) {
 		{
 			name:     "basic output struct serialization",
 			input:    9001,
-			expected: expected{struct{ Number int }{ 9001 }, nil},
+			expected: expected{struct{ Number int }{9001}, nil},
 			handler: func(event int) (struct{ Number int }, error) {
 				return struct{ Number int }{event}, nil
 			},
@@ -193,7 +193,7 @@ func TestInvokes(t *testing.T) {
 					So(err, ShouldResemble, testCase.expected.err)
 				} else {
 					So(err, ShouldBeNil)
-					So(response, ShouldResemble,  testCase.expected.val)
+					So(response, ShouldResemble, testCase.expected.val)
 				}
 			})
 		}
@@ -206,6 +206,6 @@ func TestInvalidJsonInput(t *testing.T) {
 		_, err := lambdaHandler(context.TODO(), make(chan int))
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldEqual, "json: unsupported type: chan int")
-	} )
+	})
 
 }

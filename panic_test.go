@@ -1,10 +1,10 @@
 package iopipe
 
 import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
 	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
 	"runtime"
+	"testing"
 )
 
 func testFunctionThatPanics() {
@@ -77,6 +77,7 @@ func TestPanicFormattingIntValue(t *testing.T) {
 }
 
 type CustomError struct{}
+
 func (e CustomError) Error() string { return fmt.Sprintf("Something bad happened!") }
 func TestPanicFormattingCustomError(t *testing.T) {
 	Convey("Panic formatting is accurate for Customer Error type messages", t, func() {
@@ -152,8 +153,8 @@ func TestRuntimeStackTrace(t *testing.T) {
 		const framesToHide = framesToPanicInfo
 		panicInfo := getPanicInfo("Panic time!", framesToHide)
 
-		So(panicInfo , ShouldNotBeNil)
-		So(panicInfo.StackTrace , ShouldNotBeNil)
+		So(panicInfo, ShouldNotBeNil)
+		So(panicInfo.StackTrace, ShouldNotBeNil)
 		So(len(panicInfo.StackTrace), ShouldBeGreaterThan, 0)
 
 		frame := panicInfo.StackTrace[0]

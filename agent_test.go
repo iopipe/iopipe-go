@@ -1,16 +1,15 @@
 package iopipe
 
 import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
-	"time"
 	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
+	"time"
 )
 
 func TestNewAgent(t *testing.T) {
 	Convey("An agent created with empty Config should have default configuration", t, func() {
-		agentWithDefaultConfig := NewAgent(AgentConfig{
-		})
+		agentWithDefaultConfig := NewAgent(AgentConfig{})
 
 		Convey("Agent should be enabled", func() {
 			So(agentWithDefaultConfig.Plugins, ShouldBeEmpty)
@@ -28,26 +27,26 @@ func TestNewAgent(t *testing.T) {
 	Convey("An agent created with custom Config should assume that configuration", t, func() {
 
 		var tests = []struct {
-			inputToken   string
-			inputEnabled bool
+			inputToken         string
+			inputEnabled       bool
 			inputTimeoutWindow time.Duration
 		}{
 			{
-				inputToken: "",
-				inputEnabled: false,
+				inputToken:         "",
+				inputEnabled:       false,
 				inputTimeoutWindow: 0 * time.Millisecond,
 			},
 			{
-				inputToken: "non-empty-value",
-				inputEnabled: true,
+				inputToken:         "non-empty-value",
+				inputEnabled:       true,
 				inputTimeoutWindow: 20 * time.Millisecond,
 			},
 		}
 
 		for _, test := range tests {
 			inputConfig := AgentConfig{
-				Token: test.inputToken,
-				Enabled: &test.inputEnabled,
+				Token:         test.inputToken,
+				Enabled:       &test.inputEnabled,
 				TimeoutWindow: &test.inputTimeoutWindow,
 			}
 

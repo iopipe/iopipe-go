@@ -1,13 +1,14 @@
 package iopipe
 
 import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
 	"context"
-	"time"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 	"fmt"
 	"math/rand"
+	"testing"
+	"time"
+
+	"github.com/aws/aws-lambda-go/lambdacontext"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 // TODO: this is where the fun begins ._.
@@ -54,7 +55,7 @@ func TestWrapper_PreInvoke(t *testing.T) {
 		})
 
 		Convey("Pre-invoke hook is called on all plugins", func() {
-			for _, plugin := range w.plugins  {
+			for _, plugin := range w.plugins {
 				plugin, _ := plugin.(*testPlugin)
 				So(plugin.LastHook, ShouldEqual, HOOK_PRE_INVOKE)
 			}
@@ -259,7 +260,6 @@ func TestWrapper_RunHook(t *testing.T) {
 			So(plugin1.LastHook, ShouldEqual, "not-test-hook")
 			So(plugin2.LastHook, ShouldEqual, "not-test-hook")
 		})
-
 
 	})
 }

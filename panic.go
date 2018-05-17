@@ -1,11 +1,11 @@
 package iopipe
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"runtime"
 	"strings"
-	"encoding/json"
 )
 
 const defaultErrorFrameCount = 32
@@ -23,10 +23,10 @@ type invocationError struct {
 	Message    string                  `json:"message"`
 	Name       string                  `json:"name"`
 	StackTrace []*panicErrorStackFrame `json:"-"`
-	Stack      string            	   `json:"stack"`
+	Stack      string                  `json:"stack"`
 }
 
-func (h *invocationError) Error() string  {
+func (h *invocationError) Error() string {
 	errorJSON, _ := json.Marshal(h)
 	return string(errorJSON)
 }

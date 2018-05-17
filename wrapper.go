@@ -2,12 +2,12 @@ package iopipe
 
 import (
 	"context"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 	"fmt"
-	"time"
-	"sync"
-	"runtime"
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	"os"
+	"runtime"
+	"sync"
+	"time"
 )
 
 type wrapper struct {
@@ -95,7 +95,7 @@ func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response int
 
 		select {
 		// naturally the deadline should occur before the context is closed
-		case <-time.After(time.Until(w.deadline.Add(- timeoutWindow))):
+		case <-time.After(time.Until(w.deadline.Add(-timeoutWindow))):
 			w.PostInvoke(fmt.Errorf("timeout exceeded"))
 		case <-ctx.Done():
 			return // returning not to leak the goroutine
@@ -118,7 +118,7 @@ func (w *wrapper) PostInvoke(err error) {
 	w.endTime = time.Now()
 
 	var (
-		ok bool
+		ok   bool
 		hErr *invocationError
 	)
 
@@ -177,7 +177,7 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 	}
 
 	var errs interface{}
-	errs = &struct {}{}
+	errs = &struct{}{}
 	if invErr != nil {
 		errs = invErr
 	}

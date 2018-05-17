@@ -2,9 +2,9 @@ package iopipe
 
 import (
 	"context"
-	"reflect"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"reflect"
 )
 
 // lambdaHandler is the generic function type
