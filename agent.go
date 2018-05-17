@@ -5,9 +5,12 @@ import (
 )
 
 type AgentConfig struct {
-	Token               string
-	TimeoutWindow       *time.Duration
-	Enabled             *bool
+	Token string
+	// Why are these pointers? Maybe let's not
+	TimeoutWindow *time.Duration
+	Enabled       *bool
+	// We should be passing in plugins here, and the agent should instantiate
+	// them
 	PluginInstantiators *[]PluginInstantiator
 }
 
@@ -30,6 +33,8 @@ func NewAgent(config AgentConfig) *agent {
 	if config.TimeoutWindow != nil {
 		timeoutWindow = config.TimeoutWindow
 	}
+
+	// Handle plugin nil case
 
 	return &agent{
 		AgentConfig: &AgentConfig{
