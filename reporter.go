@@ -30,8 +30,7 @@ func getBaseUrl(region string) string {
 	return url
 }
 
-//TODO: WIP for reporting to IOPipe
-func ReportToIOPipe(report *Report) error {
+func reportToIOpipe(report *Report) error {
 	var (
 		err            error
 		networkTimeout = 1 * time.Second
@@ -39,15 +38,15 @@ func ReportToIOPipe(report *Report) error {
 
 	tr := &http.Transport{
 		DisableKeepAlives: false,
-		MaxIdleConns:      1, // TODO: is this equivalent to the maxCachedSessions in the js implementation
+		MaxIdleConns:      1, // is this equivalent to the maxCachedSessions in the js implementation
 	}
 
 	httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
 
-	reportJSONBytes, _ := json.MarshalIndent(report, "", "  ")
+	reportJSONBytes, _ := json.Marshal(report) //.MarshalIndent(report, "", "  ")
 
-	// TODO defining 443 extraneous
-	reqURL := fmt.Sprintf(getBaseUrl(os.Getenv("region")), "v0/event")
+	reqURL := getBaseUrl(os.Getenv("AWS_REGION")) + "v0/event"
+	fmt.Println(string(reportJSONBytes))
 	req, err := http.NewRequest("POST", reqURL, bytes.NewReader(reportJSONBytes))
 	if err != nil {
 		return err

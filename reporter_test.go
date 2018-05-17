@@ -1,6 +1,8 @@
 package iopipe
 
-import "testing"
+import (
+	"testing"
+)
 
 type Region struct {
 	Region string
@@ -10,7 +12,7 @@ type Region struct {
 func TestGetBaseUrl(t *testing.T) {
 	regions := []Region{
 		Region{Region: "us-east-1", URL: "https://metrics-api.iopipe.com/"},
-		Region{Region: "us-west-2", URL: ""},
+		Region{Region: "us-west-2", URL: "https://metrics-api.us-west-2.iopipe.com/"},
 		// Fill out with thingies!
 	}
 

@@ -3,11 +3,12 @@ package iopipe
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 	"os"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
 type wrapper struct {
@@ -24,6 +25,7 @@ type wrapper struct {
 	plugins         []Plugin
 }
 
+// NewWrapper creats a new wrapper
 func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 
 	w := &wrapper{
@@ -43,7 +45,7 @@ func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
 	}
 
 	w.plugins = plugins
-	w.reporter = ReportToIOPipe
+	w.reporter = reportToIOpipe
 
 	w.RunHook(HOOK_PRE_SETUP)
 
