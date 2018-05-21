@@ -185,8 +185,8 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 	}
 
 	token := ""
-	if w.agent != nil {
-		token = w.agent.Token
+	if w.agent != nil && w.agent.Token != nil {
+		token = *w.agent.Token
 	}
 
 	w.report = &Report{

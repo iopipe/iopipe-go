@@ -2,9 +2,10 @@ package iopipe
 
 import (
 	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNewAgent(t *testing.T) {
@@ -45,7 +46,7 @@ func TestNewAgent(t *testing.T) {
 
 		for _, test := range tests {
 			inputConfig := AgentConfig{
-				Token:         test.inputToken,
+				Token:         &test.inputToken,
 				Enabled:       &test.inputEnabled,
 				TimeoutWindow: &test.inputTimeoutWindow,
 			}
@@ -53,7 +54,7 @@ func TestNewAgent(t *testing.T) {
 			agentWithCustomConfig := NewAgent(inputConfig)
 
 			Convey(fmt.Sprintf(`Config with inputToken "%s" should be mapped corectly in the agent instance`, test.inputToken), func() {
-				So(agentWithCustomConfig.Token, ShouldEqual, test.inputToken)
+				So(*agentWithCustomConfig.Token, ShouldEqual, test.inputToken)
 				So(*agentWithCustomConfig.Enabled, ShouldEqual, test.inputEnabled)
 				So(*agentWithCustomConfig.TimeoutWindow, ShouldEqual, test.inputTimeoutWindow)
 				So(agentWithCustomConfig.Plugins, ShouldBeEmpty)
@@ -67,20 +68,35 @@ func TestWrapHandler(t *testing.T) {
 	Convey("Returns original handler when Config.Enabled = false", t, func() {
 		handler := func() {}
 		enabled := false
+		token := "someToken"
 		wrappedHandler := NewAgent(AgentConfig{
+			Token:   &token,
 			Enabled: &enabled,
 		}).WrapHandler(handler)
 
 		So(wrappedHandler, ShouldEqual, handler)
 	})
 
+	Convey("Returns original handler when no token provided or is empty string", t, func() {
+		handler := func() {}
+		wrappedHandler := NewAgent(AgentConfig{}).WrapHandler(handler)
+		emptyStringToken := ""
+		wrappedHandlerEmptyStringToken := NewAgent(AgentConfig{Token: &emptyStringToken}).WrapHandler(handler)
+
+		So(wrappedHandler, ShouldEqual, handler)
+		So(wrappedHandlerEmptyStringToken, ShouldEqual, handler)
+	})
+
 	Convey("Returns wrapped handler when Config.Enabled = true", t, func() {
 		handler := func() {}
 		enabled := true
+		token := "someToken"
 		wrappedHandler := NewAgent(AgentConfig{
+			Token:   &token,
 			Enabled: &enabled,
 		}).WrapHandler(handler)
 
 		So(wrappedHandler, ShouldNotEqual, handler)
 	})
+
 }
