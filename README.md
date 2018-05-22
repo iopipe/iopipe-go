@@ -1,5 +1,30 @@
 # IOpipe Agent for Go (alpha)
-Go agent for AWS Lambda metrics, tracing, profiling and analytics
+This package provides analytics and distributed tracing for event-driven applications running on AWS Lambda.
+
+_WARNING! This library is in an alpha state, use at your own risk!_
+
+- [Installation](#installation)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Installation
+
+```
+import (
+	"github.com/aws/aws-lambda-go/lambda"
+	iopipe "github.com/iopipe/iopipe-go"
+)
+
+func hello() (string, error) {
+	return "Hello ƛ!", nil
+}
+
+func main() {
+	agent := iopipe.NewAgent(iopipe.AgentConfig{})
+
+	lambda.Start(agent.WrapHandler(hello))
+}
+```
 
 ## Contributing
 
