@@ -10,7 +10,7 @@ import (
 
 func TestNewAgent(t *testing.T) {
 	Convey("An agent created with empty Config should have default configuration", t, func() {
-		agentWithDefaultConfig := NewAgent(AgentConfig{})
+		agentWithDefaultConfig := NewAgent(Config{})
 
 		Convey("Agent should be enabled", func() {
 			So(agentWithDefaultConfig.Plugins, ShouldBeEmpty)
@@ -45,7 +45,7 @@ func TestNewAgent(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			inputConfig := AgentConfig{
+			inputConfig := Config{
 				Token:         &test.inputToken,
 				Enabled:       &test.inputEnabled,
 				TimeoutWindow: &test.inputTimeoutWindow,
@@ -69,7 +69,7 @@ func TestWrapHandler(t *testing.T) {
 		handler := func() {}
 		enabled := false
 		token := "someToken"
-		wrappedHandler := NewAgent(AgentConfig{
+		wrappedHandler := NewAgent(Config{
 			Token:   &token,
 			Enabled: &enabled,
 		}).WrapHandler(handler)
@@ -79,9 +79,9 @@ func TestWrapHandler(t *testing.T) {
 
 	Convey("Returns original handler when no token provided or is empty string", t, func() {
 		handler := func() {}
-		wrappedHandler := NewAgent(AgentConfig{}).WrapHandler(handler)
+		wrappedHandler := NewAgent(Config{}).WrapHandler(handler)
 		emptyStringToken := ""
-		wrappedHandlerEmptyStringToken := NewAgent(AgentConfig{Token: &emptyStringToken}).WrapHandler(handler)
+		wrappedHandlerEmptyStringToken := NewAgent(Config{Token: &emptyStringToken}).WrapHandler(handler)
 
 		So(wrappedHandler, ShouldEqual, handler)
 		So(wrappedHandlerEmptyStringToken, ShouldEqual, handler)
@@ -91,7 +91,7 @@ func TestWrapHandler(t *testing.T) {
 		handler := func() {}
 		enabled := true
 		token := "someToken"
-		wrappedHandler := NewAgent(AgentConfig{
+		wrappedHandler := NewAgent(Config{
 			Token:   &token,
 			Enabled: &enabled,
 		}).WrapHandler(handler)

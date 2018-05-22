@@ -9,6 +9,10 @@ _WARNING! This library is in an alpha state, use at your own risk!_
 
 ## Installation
 
+Set the `IOPIPE_TOKEN` environment variable to [your project token](https://dashboard.iopipe.com/install),
+import this library, instantiate an agent, and wrap your handler that you expose
+to AWS. An example follows:
+
 ```
 import (
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,11 +24,15 @@ func hello() (string, error) {
 }
 
 func main() {
-	agent := iopipe.NewAgent(iopipe.AgentConfig{})
+	agent := iopipe.NewAgent(iopipe.Config{})
 
 	lambda.Start(agent.WrapHandler(hello))
 }
 ```
+
+The `Config` struct offers further options for configuring how your function
+interacts with IOpipe, please refer to the [godoc](https://godoc.org/github.com/iopipe/iopipe-go#Config)
+for more information.
 
 ## Contributing
 

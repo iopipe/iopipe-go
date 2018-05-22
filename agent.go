@@ -5,29 +5,27 @@ import (
 	"time"
 )
 
-// AgentConfig is the config object passed to NewAgent
-type AgentConfig struct {
-	Token         *string
-	TimeoutWindow *time.Duration
-	Enabled       *bool
-	// We should be passing in plugins here, and the agent should instantiate
-	// them
+// Config is the config object passed to NewAgent
+type Config struct {
+	Token               *string
+	TimeoutWindow       *time.Duration
+	Enabled             *bool
 	PluginInstantiators []PluginInstantiator
 }
 
 type agent struct {
-	*AgentConfig
+	*Config
 	Plugins []Plugin
 }
 
 // defaults
-var defaultAgentConfigTimeoutWindow = time.Duration(150 * time.Millisecond)
-var defaultAgentConfigEnabled = true
+var defaultConfigTimeoutWindow = time.Duration(150 * time.Millisecond)
+var defaultConfigEnabled = true
 
 // NewAgent returns a new IOpipe with config
-func NewAgent(config AgentConfig) *agent {
-	timeoutWindow := &defaultAgentConfigTimeoutWindow
-	enabled := &defaultAgentConfigEnabled
+func NewAgent(config Config) *agent {
+	timeoutWindow := &defaultConfigTimeoutWindow
+	enabled := &defaultConfigEnabled
 	envtoken := os.Getenv("IOPIPE_TOKEN")
 	token := &envtoken
 
@@ -49,7 +47,7 @@ func NewAgent(config AgentConfig) *agent {
 	}
 
 	return &agent{
-		AgentConfig: &AgentConfig{
+		Config: &Config{
 			Token:               token,
 			TimeoutWindow:       timeoutWindow,
 			Enabled:             enabled,

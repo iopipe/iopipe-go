@@ -193,7 +193,7 @@ func TestWrapper_Invoke(t *testing.T) {
 			timeOutWindow := 60 * time.Millisecond
 			w.deadline = time.Now().Add(100 * time.Millisecond)
 			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.agent = &agent{AgentConfig: &AgentConfig{
+			w.agent = &agent{Config: &Config{
 				TimeoutWindow: &timeOutWindow,
 			}}
 			w.reporter = func(report *Report) error {
@@ -215,7 +215,7 @@ func TestWrapper_Invoke(t *testing.T) {
 			timeOutWindow := 2000 * time.Millisecond
 			w.wrappedHandler = wrapperHandlerThatSleeps
 			w.deadline = time.Time{}
-			w.agent = &agent{AgentConfig: &AgentConfig{
+			w.agent = &agent{Config: &Config{
 				TimeoutWindow: &timeOutWindow,
 			}}
 			w.reporter = func(report *Report) error {
