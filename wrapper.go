@@ -21,12 +21,12 @@ type wrapper struct {
 	deadline        time.Time
 	lambdaContext   *lambdacontext.LambdaContext
 	reportSending   bool
-	agent           *agent
+	agent           *Agent
 	plugins         []Plugin
 }
 
 // NewWrapper creates a new wrapper
-func NewWrapper(handler interface{}, agentInstance *agent) *wrapper {
+func NewWrapper(handler interface{}, agentInstance *Agent) *wrapper {
 
 	w := &wrapper{
 		originalHandler: handler,
@@ -141,7 +141,7 @@ func (w *wrapper) PostInvoke(err error) {
 	w.RunHook(HOOK_POST_REPORT)
 }
 
-func wrapHandler(handler interface{}, agentInstance *agent) lambdaHandler {
+func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
 	// decorate the handler
 
 	return func(context context.Context, payload interface{}) (interface{}, error) {

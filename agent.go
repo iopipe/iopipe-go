@@ -13,7 +13,7 @@ type Config struct {
 	PluginInstantiators []PluginInstantiator
 }
 
-type agent struct {
+type Agent struct {
 	*Config
 	Plugins []Plugin
 }
@@ -23,7 +23,7 @@ var defaultConfigTimeoutWindow = time.Duration(150 * time.Millisecond)
 var defaultConfigEnabled = true
 
 // NewAgent returns a new IOpipe with config
-func NewAgent(config Config) *agent {
+func NewAgent(config Config) *Agent {
 	timeoutWindow := &defaultConfigTimeoutWindow
 	enabled := &defaultConfigEnabled
 	envtoken := os.Getenv("IOPIPE_TOKEN")
@@ -46,7 +46,7 @@ func NewAgent(config Config) *agent {
 		config.PluginInstantiators = []PluginInstantiator{}
 	}
 
-	return &agent{
+	return &Agent{
 		Config: &Config{
 			Token:               token,
 			TimeoutWindow:       timeoutWindow,
@@ -56,7 +56,7 @@ func NewAgent(config Config) *agent {
 	}
 }
 
-func (a *agent) WrapHandler(handler interface{}) interface{} {
+func (a *Agent) WrapHandler(handler interface{}) interface{} {
 	// Only wrap the handler if the agent is enabled and the token is not nil or
 	// an empty string
 	if a.Enabled != nil && *a.Enabled && a.Token != nil && *a.Token != "" {
