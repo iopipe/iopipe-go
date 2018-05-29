@@ -12,45 +12,51 @@ const defaultErrorFrameCount = 32
 const framesToPanicInfo = 3 // (top-of-stack) Callers, getPanicStack -> getPanicInfo -> beyond
 
 func getErrorType(err interface{}) string {
-	if errorType := reflect.TypeOf(err); errorType.Kind() == reflect.Ptr {
+
+	errorType := reflect.TypeOf(err)
+
+	if errorType.Kind() == reflect.Ptr {
 		return errorType.Elem().Name()
-	} else {
-		return errorType.Name()
 	}
+
+	return errorType.Name()
 }
 
-type invocationError struct {
+// InvocationError is an invocation error caught by the agent
+type InvocationError struct {
 	Message    string                  `json:"message"`
 	Name       string                  `json:"name"`
 	StackTrace []*panicErrorStackFrame `json:"-"`
 	Stack      string                  `json:"stack"`
 }
 
-func (h *invocationError) Error() string {
+func (h *InvocationError) Error() string {
 	errorJSON, _ := json.Marshal(h)
 	return string(errorJSON)
 }
 
-func NewPanicInvocationError(err interface{}) *invocationError {
+// NewPanicInvocationError returns a new panic InvocationError
+func NewPanicInvocationError(err interface{}) *InvocationError {
 	if err == nil {
 		return nil
 	}
 
 	const framesToHide = framesToPanicInfo + 4 // here (NewPanicInvocationError) -> handler defer func -> 2 for panic -> actual error
 	panicInfo := getPanicInfo(err, framesToHide)
-	return &invocationError{
+	return &InvocationError{
 		Message:    panicInfo.Message,
 		Name:       getErrorType(err),
 		StackTrace: panicInfo.StackTrace,
 	}
 }
 
-func NewInvocationError(err error) *invocationError {
+// NewInvocationError returns an new InvocationError
+func NewInvocationError(err error) *InvocationError {
 	if err == nil {
 		return nil
 	}
 
-	return &invocationError{
+	return &InvocationError{
 		Message: getErrorMessage(err),
 		Name:    getErrorType(err),
 	}

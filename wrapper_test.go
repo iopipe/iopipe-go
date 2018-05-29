@@ -15,7 +15,7 @@ import (
 
 func TestWrapper_PreInvoke(t *testing.T) {
 	Convey("Captures context and runs pre-invoke hook", t, func() {
-		w := wrapper{
+		w := Wrapper{
 			plugins: []Plugin{
 				&testPlugin{},
 				&testPlugin{},
@@ -57,7 +57,7 @@ func TestWrapper_PreInvoke(t *testing.T) {
 		Convey("Pre-invoke hook is called on all plugins", func() {
 			for _, plugin := range w.plugins {
 				plugin, _ := plugin.(*testPlugin)
-				So(plugin.LastHook, ShouldEqual, HOOK_PRE_INVOKE)
+				So(plugin.LastHook, ShouldEqual, HookPreInvoke)
 			}
 		})
 	})
@@ -97,7 +97,7 @@ func TestWrapper_Invoke(t *testing.T) {
 
 			return expectedResponse, expectedError
 		}
-		w := wrapper{
+		w := Wrapper{
 			wrappedHandler: wrappedHandler,
 		}
 
@@ -132,7 +132,7 @@ func TestWrapper_Invoke(t *testing.T) {
 
 			w.wrappedHandler = wrapperHandlerThatPanics
 			w.reporter = func(report *Report) error {
-				actualMessage = report.Errors.(*invocationError).Message
+				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
 			}
 
@@ -197,7 +197,7 @@ func TestWrapper_Invoke(t *testing.T) {
 				TimeoutWindow: &timeOutWindow,
 			}}
 			w.reporter = func(report *Report) error {
-				actualMessage = report.Errors.(*invocationError).Message
+				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
 			}
 
@@ -236,7 +236,7 @@ func TestWrapper_RunHook(t *testing.T) {
 		plugin1 := &testPlugin{}
 		plugin2 := &testPlugin{}
 
-		w := wrapper{
+		w := Wrapper{
 			plugins: []Plugin{
 				plugin1,
 				plugin2,

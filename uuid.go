@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 )
 
+// UUID is a universally unique identifier
 type UUID [16]byte
 
 // String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx

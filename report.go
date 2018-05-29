@@ -1,23 +1,25 @@
 package iopipe
 
+// AWSReportDetails contains AWS invocation details
 type AWSReportDetails struct {
 	FunctionName             string `json:"functionName"`
 	FunctionVersion          string `json:"functionVersion"`
-	AWSRequestId             string `json:"awsRequestId"`
+	AWSRequestID             string `json:"awsRequestId"`
 	InvokedFunctionArn       string `json:"invokedFunctionArn"`
 	LogGroupName             string `json:"logGroupName"`
 	LogStreamName            string `json:"logStreamName"`
 	MemoryLimitInMB          int    `json:"memoryLimitInMB"`
 	GetRemainingTimeInMillis int    `json:"getRemainingTimeInMillis"`
-	TraceId                  string `json:"traceId"`
+	TraceID                  string `json:"traceId"`
 }
 
+// Report contains an IOpipe report
 type Report struct {
 	ClientID      string                   `json:"client_id"`
-	ProjectId     *string                  `json:"projectId,omitempty"`
+	ProjectID     *string                  `json:"projectId,omitempty"`
 	InstallMethod string                   `json:"installMethod"`
 	Duration      int                      `json:"duration"`
-	ProcessId     string                   `json:"processId"`
+	ProcessID     string                   `json:"processId"`
 	Timestamp     int                      `json:"timestamp"`
 	TimestampEnd  int                      `json:"timestampEnd"`
 	AWS           AWSReportDetails         `json:"aws"`
@@ -27,28 +29,33 @@ type Report struct {
 	Plugins       []interface{}            `json:"plugins"`
 }
 
+// EnvironmentReportDetails contains report details about the environment
 type EnvironmentReportDetails struct {
 	Agent   EnvironmentAgent   `json:"agent"`
 	Go      EnvironmentGo      `json:"go"`
 	Runtime EnvironmentRuntime `json:"runtime"`
 }
 
+// EnvironmentAgent contains information about the IOpipe agent
 type EnvironmentAgent struct {
 	Runtime  string `json:"runtime"`
 	Version  string `json:"version"`
 	LoadTime int    `json:"load_time"`
 }
 
+// EnvironmentRuntime contains runtime information
 type EnvironmentRuntime struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 }
 
+// EnvironmentGo contains golang runtime information
 type EnvironmentGo struct {
 	Version     string                   `json:"version"`
 	MemoryUsage EnvironmentGoMemoryUsage `json:"memoryUsage"`
 }
 
+// EnvironmentGoMemoryUsage contains memory usage information
 type EnvironmentGoMemoryUsage struct {
 	Alloc      int `json:"alloc"`
 	TotalAlloc int `json:"totalAlloc"`
@@ -56,6 +63,7 @@ type EnvironmentGoMemoryUsage struct {
 	NumGC      int `json:"numGC"`
 }
 
+// Reporter is a reporter function
 type Reporter func(report *Report) error
 
 //{

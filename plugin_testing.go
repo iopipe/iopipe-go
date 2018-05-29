@@ -1,8 +1,9 @@
 package iopipe
 
+// TestPluginConfig is a test plugin config
 type TestPluginConfig struct {
 	LastHook        string
-	wrapperInstance wrapper
+	wrapperInstance Wrapper
 }
 
 type testPlugin struct {
@@ -27,8 +28,9 @@ func (p *testPlugin) Name() string {
 	return "test-plugin"
 }
 
+// TestPlugin return a test plugin
 func TestPlugin(config TestPluginConfig) PluginInstantiator {
-	return func(w *wrapper) Plugin {
+	return func(w *Wrapper) Plugin {
 		return &testPlugin{config}
 	}
 }

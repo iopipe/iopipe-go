@@ -13,6 +13,7 @@ type Config struct {
 	PluginInstantiators []PluginInstantiator
 }
 
+// Agent is the struct returned by NewAgent
 type Agent struct {
 	*Config
 	Plugins []Plugin
@@ -56,6 +57,7 @@ func NewAgent(config Config) *Agent {
 	}
 }
 
+// WrapHandler wraps the handler with the IOpipe agent
 func (a *Agent) WrapHandler(handler interface{}) interface{} {
 	// Only wrap the handler if the agent is enabled and the token is not nil or
 	// an empty string

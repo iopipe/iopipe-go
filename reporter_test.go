@@ -9,7 +9,7 @@ type Region struct {
 	URL    string
 }
 
-func TestGetBaseUrl(t *testing.T) {
+func TestGetBaseURL(t *testing.T) {
 	regions := []Region{
 		Region{Region: "us-east-1", URL: "https://metrics-api.iopipe.com/"},
 		Region{Region: "us-west-2", URL: "https://metrics-api.us-west-2.iopipe.com/"},
@@ -17,8 +17,8 @@ func TestGetBaseUrl(t *testing.T) {
 	}
 
 	for _, region := range regions {
-		if getBaseUrl(region.Region) != region.URL {
-			t.Errorf("got %q, expected %q", getBaseUrl(region.Region), region.URL)
+		if getBaseURL(region.Region) != region.URL {
+			t.Errorf("got %q, expected %q", getBaseURL(region.Region), region.URL)
 		}
 	}
 }

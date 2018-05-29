@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func getBaseUrl(region string) string {
+func getBaseURL(region string) string {
 	// array of supported regions so we can easily look up
 	// whether a region has its own collector
 	// using empty structs takes up no space versus using, say, a bool
@@ -45,7 +45,7 @@ func reportToIOpipe(report *Report) error {
 
 	reportJSONBytes, _ := json.Marshal(report) //.MarshalIndent(report, "", "  ")
 
-	reqURL := getBaseUrl(os.Getenv("AWS_REGION")) + "v0/event"
+	reqURL := getBaseURL(os.Getenv("AWS_REGION")) + "v0/event"
 	fmt.Println(string(reportJSONBytes))
 	req, err := http.NewRequest("POST", reqURL, bytes.NewReader(reportJSONBytes))
 	if err != nil {

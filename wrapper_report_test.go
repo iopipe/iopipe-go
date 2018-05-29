@@ -14,7 +14,7 @@ import (
 func TestWrapper_prepareReport(t *testing.T) {
 	t.Skip()
 	Convey("Prepare report using information found inside wrapper instance", t, func() {
-		w := wrapper{}
+		w := Wrapper{}
 
 		Convey("Report generated on empty wrapper adheres to spec", func() {
 			w.prepareReport(nil)
@@ -22,11 +22,11 @@ func TestWrapper_prepareReport(t *testing.T) {
 			var actualReportJSON interface{}
 			_ = json.Unmarshal(reportJSONBytes, &actualReportJSON)
 
-			emptyReportVersioned := fmt.Sprintf(emptyReport, RUNTIME_VERSION, RUNTIME_VERSION)
-			var expectedReportJson interface{}
-			_ = json.Unmarshal([]byte(executeTemplateString(emptyReportVersioned, w.report)), &expectedReportJson)
+			emptyReportVersioned := fmt.Sprintf(emptyReport, RuntimeVersion, RuntimeVersion)
+			var expectedReportJSON interface{}
+			_ = json.Unmarshal([]byte(executeTemplateString(emptyReportVersioned, w.report)), &expectedReportJSON)
 
-			So(actualReportJSON, ShouldResemble, expectedReportJson)
+			So(actualReportJSON, ShouldResemble, expectedReportJSON)
 		})
 
 		Convey("Is idempotent", func() {

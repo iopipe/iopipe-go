@@ -2,9 +2,10 @@ package iopipe
 
 import "fmt"
 
+// LoggerPluginConfig is the logger plugin config
 type LoggerPluginConfig struct {
 	Key             string
-	wrapperInstance wrapper
+	wrapperInstance Wrapper
 }
 
 type loggerPlugin struct {
@@ -27,8 +28,9 @@ func (p *loggerPlugin) Name() string {
 	return "logger-plugin"
 }
 
+// LoggerPlugin loads the logger plugin
 func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {
-	return func(w *wrapper) Plugin {
+	return func(w *Wrapper) Plugin {
 		return &loggerPlugin{config}
 	}
 }

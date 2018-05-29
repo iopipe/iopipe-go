@@ -11,7 +11,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
-type wrapper struct {
+// Wrapper is an IOpipe wrapper
+type Wrapper struct {
 	report          *Report
 	reporter        Reporter
 	originalHandler interface{}
@@ -25,10 +26,10 @@ type wrapper struct {
 	plugins         []Plugin
 }
 
-// NewWrapper creates a new wrapper
-func NewWrapper(handler interface{}, agentInstance *Agent) *wrapper {
+// NewWrapper creates a new IOpipe wrapper
+func NewWrapper(handler interface{}, agentInstance *Agent) *Wrapper {
 
-	w := &wrapper{
+	w := &Wrapper{
 		originalHandler: handler,
 		wrappedHandler:  newHandler(handler),
 		agent:           agentInstance,
@@ -47,19 +48,21 @@ func NewWrapper(handler interface{}, agentInstance *Agent) *wrapper {
 	w.plugins = plugins
 	w.reporter = reportToIOpipe
 
-	w.RunHook(HOOK_PRE_SETUP)
+	w.RunHook(HookPreSetup)
 
-	w.RunHook(HOOK_POST_SETUP)
+	w.RunHook(HookPostSetup)
 	return w
 }
 
-func (w *wrapper) PreInvoke(context context.Context) {
+// PreInvoke runs pre invoke hooks
+func (w *Wrapper) PreInvoke(context context.Context) {
 	w.deadline, _ = context.Deadline()
 	w.lambdaContext, _ = lambdacontext.FromContext(context)
-	w.RunHook(HOOK_PRE_INVOKE)
+	w.RunHook(HookPreInvoke)
 }
 
-func (w *wrapper) RunHook(hook string) {
+// RunHook runs the specified hooks
+func (w *Wrapper) RunHook(hook string) {
 	var wg sync.WaitGroup
 	wg.Add(len(w.plugins))
 
@@ -76,7 +79,8 @@ func (w *wrapper) RunHook(hook string) {
 	wg.Wait()
 }
 
-func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
+// Invoke invokes the wrapped handler
+func (w *Wrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
 	w.startTime = time.Now()
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
@@ -108,23 +112,24 @@ func (w *wrapper) Invoke(ctx context.Context, payload interface{}) (response int
 	return w.wrappedHandler(ctx, payload)
 }
 
-func (w *wrapper) PostInvoke(err error) {
+// PostInvoke runs the post invoke hooks
+func (w *Wrapper) PostInvoke(err error) {
 	if w.reportSending {
 		return
 	}
 	w.reportSending = true
 
-	w.RunHook(HOOK_POST_INVOKE)
-	w.RunHook(HOOK_PRE_REPORT)
+	w.RunHook(HookPostInvoke)
+	w.RunHook(HookPreReport)
 
 	w.endTime = time.Now()
 
 	var (
 		ok   bool
-		hErr *invocationError
+		hErr *InvocationError
 	)
 
-	if hErr, ok = err.(*invocationError); !ok {
+	if hErr, ok = err.(*InvocationError); !ok {
 		hErr = NewInvocationError(err)
 	}
 	w.prepareReport(hErr)
@@ -138,7 +143,7 @@ func (w *wrapper) PostInvoke(err error) {
 		}
 	}
 
-	w.RunHook(HOOK_POST_REPORT)
+	w.RunHook(HookPostReport)
 }
 
 func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
@@ -151,12 +156,12 @@ func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
 		response, err := handlerWrapper.Invoke(context, payload)
 		handlerWrapper.PostInvoke(err)
 
-		COLD_START = false
+		ColdStart = false
 		return response, err
 	}
 }
 
-func (w *wrapper) prepareReport(invErr *invocationError) {
+func (w *Wrapper) prepareReport(invErr *InvocationError) {
 	if w.report != nil {
 		return
 	}
@@ -193,25 +198,25 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 		ClientID:      token,
 		InstallMethod: "manual",
 		Duration:      int(endTime.Sub(startTime).Nanoseconds()),
-		ProcessId:     PROCESS_ID,
+		ProcessID:     ProcessID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
 		TimestampEnd:  int(endTime.UnixNano() / 1e6),
 		AWS: AWSReportDetails{
 			FunctionName:             lambdacontext.FunctionName,
 			FunctionVersion:          lambdacontext.FunctionVersion,
-			AWSRequestId:             lc.AwsRequestID,
+			AWSRequestID:             lc.AwsRequestID,
 			InvokedFunctionArn:       lc.InvokedFunctionArn,
 			LogGroupName:             lambdacontext.LogGroupName,
 			LogStreamName:            lambdacontext.LogStreamName,
 			MemoryLimitInMB:          lambdacontext.MemoryLimitInMB,
 			GetRemainingTimeInMillis: int(time.Until(deadline).Nanoseconds() / 1e6),
-			TraceId:                  os.Getenv("_X_AMZN_TRACE_ID"),
+			TraceID:                  os.Getenv("_X_AMZN_TRACE_ID"),
 		},
 		Environment: EnvironmentReportDetails{
 			Agent: EnvironmentAgent{
 				Runtime:  RUNTIME,
 				Version:  VERSION,
-				LoadTime: MODULE_LOAD_TIME,
+				LoadTime: LoadTime,
 			},
 			Go: EnvironmentGo{
 				Version: runtime.Version(),
@@ -227,7 +232,7 @@ func (w *wrapper) prepareReport(invErr *invocationError) {
 				Version: runtime.Version(),
 			},
 		},
-		ColdStart: COLD_START,
+		ColdStart: ColdStart,
 		Errors:    errs,
 		Plugins:   pluginsMeta,
 	}
