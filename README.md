@@ -13,10 +13,10 @@ Set the `IOPIPE_TOKEN` environment variable to [your project token](https://dash
 import this library, instantiate an agent, and wrap your handler that you expose
 to AWS. An example follows:
 
-```
+```go
 import (
 	"github.com/aws/aws-lambda-go/lambda"
-	iopipe "github.com/iopipe/iopipe-go"
+	"github.com/iopipe/iopipe-go"
 )
 
 func hello() (string, error) {
