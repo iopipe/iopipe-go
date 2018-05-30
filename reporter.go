@@ -24,13 +24,15 @@ func getBaseURL(region string) string {
 	}
 
 	url := "https://metrics-api.iopipe.com/"
+
 	if _, exists := supportedRegions[region]; exists {
 		url = fmt.Sprintf("https://metrics-api.%s.iopipe.com/", region)
 	}
+
 	return url
 }
 
-func reportToIOpipe(report *Report) error {
+func sendReport(report *Report) error {
 	var (
 		err            error
 		networkTimeout = 1 * time.Second
@@ -47,20 +49,25 @@ func reportToIOpipe(report *Report) error {
 
 	reqURL := getBaseURL(os.Getenv("AWS_REGION")) + "v0/event"
 	fmt.Println(string(reportJSONBytes))
+
 	req, err := http.NewRequest("POST", reqURL, bytes.NewReader(reportJSONBytes))
 	if err != nil {
 		return err
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := httpsClient.Do(req)
+
 	if err != nil {
 		return err
 	}
+
 	defer res.Body.Close()
 
 	resbody, err := ioutil.ReadAll(res.Body)
 	fmt.Println("body read from IOPIPE", string(resbody))
+
 	if err != nil {
 		return err
 	}

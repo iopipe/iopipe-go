@@ -8,6 +8,9 @@ type Plugin interface {
 	RunHook(string)
 	Meta() interface{}
 	Name() string
+	Version() string
+	Homepage() string
+	Enabled() bool
 }
 
 // HookPreSetup is ahook run before agent setup

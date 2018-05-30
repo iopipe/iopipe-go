@@ -2,7 +2,7 @@ package iopipe
 
 import "fmt"
 
-// LoggerPluginConfig is the logger plugin config
+// LoggerPluginConfig is the logger plugin configuration
 type LoggerPluginConfig struct {
 	Key             string
 	wrapperInstance HandlerWrapper
@@ -18,14 +18,32 @@ func (p *loggerPlugin) RunHook(hook string) {
 
 func (p *loggerPlugin) Meta() interface{} {
 	return struct {
-		Name string `json:"name"`
+		Name     string `json:"name"`
+		Version  string `json:"version"`
+		Homepage string `json:"homepage"`
+		Enabled  bool   `json:"enabled"`
 	}{
-		Name: p.Name(),
+		Name:     p.Name(),
+		Version:  p.Version(),
+		Homepage: p.Homepage(),
+		Enabled:  p.Enabled(),
 	}
 }
 
 func (p *loggerPlugin) Name() string {
-	return "logger-plugin"
+	return "@iopipe/logger"
+}
+
+func (p *loggerPlugin) Version() string {
+	return "0.1.0"
+}
+
+func (p *loggerPlugin) Homepage() string {
+	return "https://github.com/iopipe/iopipe-go#logger-plugin"
+}
+
+func (p *loggerPlugin) Enabled() bool {
+	return true
 }
 
 // LoggerPlugin loads the logger plugin

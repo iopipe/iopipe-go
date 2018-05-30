@@ -46,7 +46,7 @@ func NewHandlerWrapper(handler interface{}, agentInstance *Agent) *HandlerWrappe
 	}
 
 	hw.plugins = plugins
-	hw.reporter = reportToIOpipe
+	hw.reporter = sendReport
 
 	// TODO: This is supposed to happen during agent init
 	hw.RunHook(HookPreSetup)
@@ -139,7 +139,7 @@ func (hw *HandlerWrapper) PostInvoke(err error) {
 	if hw.reporter != nil {
 		err := hw.reporter(hw.report)
 		if err != nil {
-			// TODO: Don't we want to pass the error on to AWS?
+			// TODO: We want to log an error during reporting
 			fmt.Println("Reporting errored: ", err)
 		}
 	}
@@ -162,6 +162,7 @@ func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
 	}
 }
 
+// TODO: Make this a method of Report
 func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 	if hw.report != nil {
 		return
