@@ -5,7 +5,7 @@ import "fmt"
 // LoggerPluginConfig is the logger plugin config
 type LoggerPluginConfig struct {
 	Key             string
-	wrapperInstance Wrapper
+	wrapperInstance HandlerWrapper
 }
 
 type loggerPlugin struct {
@@ -30,7 +30,7 @@ func (p *loggerPlugin) Name() string {
 
 // LoggerPlugin loads the logger plugin
 func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {
-	return func(w *Wrapper) Plugin {
+	return func(w *HandlerWrapper) Plugin {
 		return &loggerPlugin{config}
 	}
 }

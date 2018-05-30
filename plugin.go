@@ -1,7 +1,7 @@
 package iopipe
 
 // PluginInstantiator is the function passed the wrapped handler
-type PluginInstantiator func(*Wrapper) Plugin
+type PluginInstantiator func(*HandlerWrapper) Plugin
 
 // Plugin is the interface a plugin should implement
 type Plugin interface {

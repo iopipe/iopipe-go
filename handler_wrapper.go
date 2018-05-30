@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
-// Wrapper is an IOpipe wrapper
-type Wrapper struct {
+// HandlerWrapper is the IOpipe handler wrapper
+type HandlerWrapper struct {
 	report          *Report
 	reporter        Reporter
 	originalHandler interface{}
@@ -26,47 +26,48 @@ type Wrapper struct {
 	plugins         []Plugin
 }
 
-// NewWrapper creates a new IOpipe wrapper
-func NewWrapper(handler interface{}, agentInstance *Agent) *Wrapper {
-
-	w := &Wrapper{
+// NewHandlerWrapper creates a new IOpipe handler wrapper
+func NewHandlerWrapper(handler interface{}, agentInstance *Agent) *HandlerWrapper {
+	hw := &HandlerWrapper{
 		originalHandler: handler,
 		wrappedHandler:  newHandler(handler),
 		agent:           agentInstance,
 	}
 
+	// TODO: Plugins should be loaded at agent level and only once
 	var plugins []Plugin
 	pluginInstantiators := agentInstance.PluginInstantiators
 
 	if pluginInstantiators != nil {
 		plugins = make([]Plugin, len(pluginInstantiators))
 		for index, pluginInstantiator := range pluginInstantiators {
-			plugins[index] = pluginInstantiator(w)
+			plugins[index] = pluginInstantiator(hw)
 		}
 	}
 
-	w.plugins = plugins
-	w.reporter = reportToIOpipe
+	hw.plugins = plugins
+	hw.reporter = reportToIOpipe
 
-	w.RunHook(HookPreSetup)
+	// TODO: This is supposed to happen during agent init
+	hw.RunHook(HookPreSetup)
+	hw.RunHook(HookPostSetup)
 
-	w.RunHook(HookPostSetup)
-	return w
+	return hw
 }
 
 // PreInvoke runs pre invoke hooks
-func (w *Wrapper) PreInvoke(context context.Context) {
-	w.deadline, _ = context.Deadline()
-	w.lambdaContext, _ = lambdacontext.FromContext(context)
-	w.RunHook(HookPreInvoke)
+func (hw *HandlerWrapper) PreInvoke(context context.Context) {
+	hw.deadline, _ = context.Deadline()
+	hw.lambdaContext, _ = lambdacontext.FromContext(context)
+	hw.RunHook(HookPreInvoke)
 }
 
 // RunHook runs the specified hooks
-func (w *Wrapper) RunHook(hook string) {
+func (hw *HandlerWrapper) RunHook(hook string) {
 	var wg sync.WaitGroup
-	wg.Add(len(w.plugins))
+	wg.Add(len(hw.plugins))
 
-	for _, plugin := range w.plugins {
+	for _, plugin := range hw.plugins {
 		go func(plugin Plugin) {
 			defer wg.Done()
 
@@ -80,49 +81,48 @@ func (w *Wrapper) RunHook(hook string) {
 }
 
 // Invoke invokes the wrapped handler
-func (w *Wrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
-	w.startTime = time.Now()
+func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
+	hw.startTime = time.Now()
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			// the stack trace the client gets will be a bit verbose with mentions of the wrapper
-			w.PostInvoke(NewPanicInvocationError(panicErr))
+			hw.PostInvoke(NewPanicInvocationError(panicErr))
 			panic(panicErr)
 		}
 	}()
 
 	go func() {
 		timeoutWindow := 0 * time.Millisecond
-		if w.agent != nil && w.agent.TimeoutWindow != nil {
-			timeoutWindow = *w.agent.TimeoutWindow
+		if hw.agent != nil && hw.agent.TimeoutWindow != nil {
+			timeoutWindow = *hw.agent.TimeoutWindow
 		}
 
-		if w.deadline.IsZero() {
+		if hw.deadline.IsZero() {
 			return
 		}
 
 		select {
 		// naturally the deadline should occur before the context is closed
-		case <-time.After(time.Until(w.deadline.Add(-timeoutWindow))):
-			w.PostInvoke(fmt.Errorf("timeout exceeded"))
+		case <-time.After(time.Until(hw.deadline.Add(-timeoutWindow))):
+			hw.PostInvoke(fmt.Errorf("timeout exceeded"))
 		case <-ctx.Done():
 			return // returning not to leak the goroutine
 		}
 	}()
 
-	return w.wrappedHandler(ctx, payload)
+	return hw.wrappedHandler(ctx, payload)
 }
 
 // PostInvoke runs the post invoke hooks
-func (w *Wrapper) PostInvoke(err error) {
-	if w.reportSending {
+func (hw *HandlerWrapper) PostInvoke(err error) {
+	if hw.reportSending {
 		return
 	}
-	w.reportSending = true
 
-	w.RunHook(HookPostInvoke)
-	w.RunHook(HookPreReport)
-
-	w.endTime = time.Now()
+	hw.reportSending = true
+	hw.RunHook(HookPostInvoke)
+	hw.RunHook(HookPreReport)
+	hw.endTime = time.Now()
 
 	var (
 		ok   bool
@@ -132,54 +132,57 @@ func (w *Wrapper) PostInvoke(err error) {
 	if hErr, ok = err.(*InvocationError); !ok {
 		hErr = NewInvocationError(err)
 	}
-	w.prepareReport(hErr)
+
+	hw.prepareReport(hErr)
 
 	// PostInvoke
-	if w.reporter != nil {
-		err := w.reporter(w.report)
+	if hw.reporter != nil {
+		err := hw.reporter(hw.report)
 		if err != nil {
-			// TODO: figure out what to do when invoke errors
+			// TODO: Don't we want to pass the error on to AWS?
 			fmt.Println("Reporting errored: ", err)
 		}
 	}
 
-	w.RunHook(HookPostReport)
+	hw.RunHook(HookPostReport)
 }
 
 func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
 	// decorate the handler
-
 	return func(context context.Context, payload interface{}) (interface{}, error) {
-		handlerWrapper := NewWrapper(handler, agentInstance)
+		handlerWrapper := NewHandlerWrapper(handler, agentInstance)
 
 		handlerWrapper.PreInvoke(context)
 		response, err := handlerWrapper.Invoke(context, payload)
 		handlerWrapper.PostInvoke(err)
 
 		ColdStart = false
+
 		return response, err
 	}
 }
 
-func (w *Wrapper) prepareReport(invErr *InvocationError) {
-	if w.report != nil {
+func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
+	if hw.report != nil {
 		return
 	}
 
-	startTime := w.startTime
-	endTime := w.endTime
-	deadline := w.deadline
-	lc := w.lambdaContext
+	startTime := hw.startTime
+	endTime := hw.endTime
+	deadline := hw.deadline
+
+	lc := hw.lambdaContext
 	if lc == nil {
 		lc = &lambdacontext.LambdaContext{
 			AwsRequestID: "ERROR",
 		}
 	}
+
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 
-	pluginsMeta := make([]interface{}, len(w.plugins))
-	for index, plugin := range w.plugins {
+	pluginsMeta := make([]interface{}, len(hw.plugins))
+	for index, plugin := range hw.plugins {
 		pluginsMeta[index] = plugin.Meta()
 	}
 
@@ -190,11 +193,11 @@ func (w *Wrapper) prepareReport(invErr *InvocationError) {
 	}
 
 	token := ""
-	if w.agent != nil && w.agent.Token != nil {
-		token = *w.agent.Token
+	if hw.agent != nil && hw.agent.Token != nil {
+		token = *hw.agent.Token
 	}
 
-	w.report = &Report{
+	hw.report = &Report{
 		ClientID:      token,
 		InstallMethod: "manual",
 		Duration:      int(endTime.Sub(startTime).Nanoseconds()),

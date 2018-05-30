@@ -13,9 +13,9 @@ import (
 
 // TODO: this is where the fun begins ._.
 
-func TestWrapper_PreInvoke(t *testing.T) {
+func TestHandlerWrapper_PreInvoke(t *testing.T) {
 	Convey("Captures context and runs pre-invoke hook", t, func() {
-		w := Wrapper{
+		hw := HandlerWrapper{
 			plugins: []Plugin{
 				&testPlugin{},
 				&testPlugin{},
@@ -44,18 +44,18 @@ func TestWrapper_PreInvoke(t *testing.T) {
 		ctx = lambdacontext.NewContext(ctx, &expectedLC)
 		ctx, cancel := context.WithDeadline(ctx, expectedDeadline)
 		defer cancel()
-		w.PreInvoke(ctx)
+		hw.PreInvoke(ctx)
 
 		Convey("Wrapper lambdaContext matches input context", func() {
-			So(*w.lambdaContext, ShouldResemble, expectedLC)
+			So(*hw.lambdaContext, ShouldResemble, expectedLC)
 		})
 
 		Convey("Wrapper deadline matches input context", func() {
-			So(w.deadline, ShouldEqual, expectedDeadline)
+			So(hw.deadline, ShouldEqual, expectedDeadline)
 		})
 
 		Convey("Pre-invoke hook is called on all plugins", func() {
-			for _, plugin := range w.plugins {
+			for _, plugin := range hw.plugins {
 				plugin, _ := plugin.(*testPlugin)
 				So(plugin.LastHook, ShouldEqual, HookPreInvoke)
 			}
@@ -63,7 +63,7 @@ func TestWrapper_PreInvoke(t *testing.T) {
 	})
 }
 
-func TestWrapper_Invoke(t *testing.T) {
+func TestHandlerWrapper_Invoke(t *testing.T) {
 	Convey("Given a wrapped function", t, func() {
 		var (
 			receivedContext context.Context
@@ -97,47 +97,47 @@ func TestWrapper_Invoke(t *testing.T) {
 
 			return expectedResponse, expectedError
 		}
-		w := Wrapper{
+		hw := HandlerWrapper{
 			wrappedHandler: wrappedHandler,
 		}
 
 		Convey("Captures startTime of the invocation", func() {
-			So(w.startTime, ShouldBeZeroValue)
+			So(hw.startTime, ShouldBeZeroValue)
 			beforeInvokeTime := time.Now()
-			w.Invoke(expectedContext, expectedPayload)
-			So(w.startTime, ShouldHappenBetween, beforeInvokeTime, time.Now())
+			hw.Invoke(expectedContext, expectedPayload)
+			So(hw.startTime, ShouldHappenBetween, beforeInvokeTime, time.Now())
 		})
 
 		Convey("Passes arguments unchanged to wrappedHandler", func() {
-			w.Invoke(expectedContext, expectedPayload)
+			hw.Invoke(expectedContext, expectedPayload)
 			So(receivedContext, ShouldEqual, expectedContext)
 			So(receivedPayload, ShouldEqual, expectedPayload)
 		})
 
 		Convey("Returns identical values to wrappedHandler", func() {
-			actualResponse, actualError := w.Invoke(expectedContext, expectedPayload)
+			actualResponse, actualError := hw.Invoke(expectedContext, expectedPayload)
 			So(actualResponse, ShouldEqual, expectedResponse)
 			So(actualError, ShouldEqual, expectedError)
 		})
 
 		Convey("Panics when wrappedHandler panics", func() {
-			w.wrappedHandler = wrapperHandlerThatPanics
+			hw.wrappedHandler = wrapperHandlerThatPanics
 			So(func() {
-				w.Invoke(expectedContext, expectedPayload)
+				hw.Invoke(expectedContext, expectedPayload)
 			}, ShouldPanicWith, fmt.Sprintf("meow-%d", expectedResponse))
 		})
 
 		Convey("WrappedHandler panic sends report with matching error message", func() {
 			var actualMessage string
 
-			w.wrappedHandler = wrapperHandlerThatPanics
-			w.reporter = func(report *Report) error {
+			hw.wrappedHandler = wrapperHandlerThatPanics
+			hw.reporter = func(report *Report) error {
 				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
 			}
 
 			So(func() {
-				w.Invoke(expectedContext, expectedPayload)
+				hw.Invoke(expectedContext, expectedPayload)
 			}, ShouldPanic)
 			So(actualMessage, ShouldEqual, fmt.Sprintf("meow-%d", expectedResponse))
 		})
@@ -150,14 +150,14 @@ func TestWrapper_Invoke(t *testing.T) {
 			// and report not called
 			var reporterCalled bool
 
-			w.deadline = time.Now().Add(100 * time.Millisecond)
-			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.reporter = func(report *Report) error {
+			hw.deadline = time.Now().Add(100 * time.Millisecond)
+			hw.wrappedHandler = wrapperHandlerThatSleeps
+			hw.reporter = func(report *Report) error {
 				reporterCalled = true
 				return nil
 			}
 
-			w.Invoke(expectedContext, expectedPayload)
+			hw.Invoke(expectedContext, expectedPayload)
 			So(reporterCalled, ShouldBeFalse)
 		})
 
@@ -170,14 +170,14 @@ func TestWrapper_Invoke(t *testing.T) {
 			// report notcalled
 			var reporterCalled bool
 
-			w.deadline = time.Now().Add(100 * time.Millisecond)
-			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.reporter = func(report *Report) error {
+			hw.deadline = time.Now().Add(100 * time.Millisecond)
+			hw.wrappedHandler = wrapperHandlerThatSleeps
+			hw.reporter = func(report *Report) error {
 				reporterCalled = true
 				return nil
 			}
 
-			w.Invoke(expectedContext, expectedPayload)
+			hw.Invoke(expectedContext, expectedPayload)
 			time.Sleep(60 * time.Millisecond)
 			So(reporterCalled, ShouldBeFalse)
 		})
@@ -191,17 +191,17 @@ func TestWrapper_Invoke(t *testing.T) {
 			var actualMessage string
 
 			timeOutWindow := 60 * time.Millisecond
-			w.deadline = time.Now().Add(100 * time.Millisecond)
-			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.agent = &Agent{Config: &Config{
+			hw.deadline = time.Now().Add(100 * time.Millisecond)
+			hw.wrappedHandler = wrapperHandlerThatSleeps
+			hw.agent = &Agent{Config: &Config{
 				TimeoutWindow: &timeOutWindow,
 			}}
-			w.reporter = func(report *Report) error {
+			hw.reporter = func(report *Report) error {
 				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
 			}
 
-			w.Invoke(expectedContext, expectedPayload)
+			hw.Invoke(expectedContext, expectedPayload)
 			So(actualMessage, ShouldEqual, "timeout exceeded")
 		})
 
@@ -213,17 +213,17 @@ func TestWrapper_Invoke(t *testing.T) {
 			var reporterCalled bool
 
 			timeOutWindow := 2000 * time.Millisecond
-			w.wrappedHandler = wrapperHandlerThatSleeps
-			w.deadline = time.Time{}
-			w.agent = &Agent{Config: &Config{
+			hw.wrappedHandler = wrapperHandlerThatSleeps
+			hw.deadline = time.Time{}
+			hw.agent = &Agent{Config: &Config{
 				TimeoutWindow: &timeOutWindow,
 			}}
-			w.reporter = func(report *Report) error {
+			hw.reporter = func(report *Report) error {
 				reporterCalled = true
 				return nil
 			}
 
-			w.Invoke(expectedContext, expectedPayload)
+			hw.Invoke(expectedContext, expectedPayload)
 			time.Sleep(50 * time.Millisecond)
 			So(reporterCalled, ShouldBeFalse)
 		})
@@ -231,12 +231,12 @@ func TestWrapper_Invoke(t *testing.T) {
 	})
 }
 
-func TestWrapper_RunHook(t *testing.T) {
+func TestHandlerWrapper_RunHook(t *testing.T) {
 	Convey("Runs hooks on all the plugins", t, func() {
 		plugin1 := &testPlugin{}
 		plugin2 := &testPlugin{}
 
-		w := Wrapper{
+		hw := HandlerWrapper{
 			plugins: []Plugin{
 				plugin1,
 				plugin2,
@@ -244,17 +244,17 @@ func TestWrapper_RunHook(t *testing.T) {
 		}
 
 		Convey("All plugins should receive RunHook", func() {
-			w.RunHook("test-hook")
+			hw.RunHook("test-hook")
 
 			So(plugin1.LastHook, ShouldEqual, "test-hook")
 			So(plugin2.LastHook, ShouldEqual, "test-hook")
 		})
 
 		Convey("Nil plugin does not result in panic", func() {
-			w.plugins = append(w.plugins, nil)
+			hw.plugins = append(hw.plugins, nil)
 
 			So(func() {
-				w.RunHook("not-test-hook")
+				hw.RunHook("not-test-hook")
 			}, ShouldNotPanic)
 			So(plugin1.LastHook, ShouldEqual, "not-test-hook")
 			So(plugin2.LastHook, ShouldEqual, "not-test-hook")
