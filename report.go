@@ -29,9 +29,11 @@ type ReportAWS struct {
 	TraceID                  string `json:"traceId"`
 }
 
-// ReportEnvironment contains report details about the environment
+// ReportEnvironment contains environment information
 type ReportEnvironment struct {
 	Agent   ReportEnvironmentAgent   `json:"agent"`
+	Host    ReportEnvironmentHost    `json:"host"`
+	OS      ReportEnvironmentOS      `json:"os"`
 	Runtime ReportEnvironmentRuntime `json:"runtime"`
 }
 
@@ -40,6 +42,16 @@ type ReportEnvironmentAgent struct {
 	Runtime  string `json:"runtime"`
 	Version  string `json:"version"`
 	LoadTime int    `json:"load_time"`
+}
+
+// ReportEnvironmentHost contains host information
+type ReportEnvironmentHost struct {
+	BootID string `json:"boot_id"`
+}
+
+// ReportEnvironmentOS contains operating system information
+type ReportEnvironmentOS struct {
+	Hostname string `json:"hostname"`
 }
 
 // ReportEnvironmentRuntime contains runtime information

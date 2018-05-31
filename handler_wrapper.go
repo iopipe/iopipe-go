@@ -224,6 +224,9 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 				Version:  VERSION,
 				LoadTime: LoadTime,
 			},
+			OS: ReportEnvironmentOS{
+				Hostname: ReadHostname(),
+			},
 			Runtime: ReportEnvironmentRuntime{
 				Name:    RUNTIME,
 				Version: runtime.Version()[2:],

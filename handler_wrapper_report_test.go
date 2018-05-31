@@ -64,6 +64,12 @@ const emptyReport = `
       "version": "0.1.1",
       "load_time": {{.Environment.Agent.LoadTime}}
     },
+	"host": {
+		"boot_id": "{{.Environment.Host.BootID}}"
+	},
+	"os": {
+		"hostname": "{{.Environment.OS.Hostname}}"
+	},
     "runtime": {
       "name": "go",
       "version": "{{.Environment.Runtime.Version}}"
