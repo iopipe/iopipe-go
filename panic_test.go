@@ -37,13 +37,12 @@ func TestNewPanicInvocationError(t *testing.T) {
 		})
 
 		Convey("When the parent function is called", func() {
-			t.Skip()
 			parentWithPanickyChild()
 
 			Convey("The first stack frame in NewPanicInvocationError refers to the panic inside the child function", func() {
 				So(*panicErr.StackTrace[0], ShouldResemble, panicErrorStackFrame{
 					Path:     "github.com/iopipe/iopipe-go/panic_test.go",
-					Line:     11,
+					Line:     12,
 					Function: "testFunctionThatPanics",
 				})
 			})
