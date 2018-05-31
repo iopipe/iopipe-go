@@ -3,7 +3,6 @@ package iopipe
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"testing"
 	"text/template"
@@ -12,19 +11,18 @@ import (
 )
 
 func TestHandlerWrapper_prepareReport(t *testing.T) {
-	t.Skip()
 	Convey("Prepare report using information found inside wrapper instance", t, func() {
 		hw := HandlerWrapper{}
 
 		Convey("Report generated on empty wrapper adheres to spec", func() {
 			hw.prepareReport(nil)
 			reportJSONBytes, _ := json.Marshal(hw.report)
+
 			var actualReportJSON interface{}
 			_ = json.Unmarshal(reportJSONBytes, &actualReportJSON)
 
-			emptyReportVersioned := fmt.Sprintf(emptyReport, RuntimeVersion, RuntimeVersion)
 			var expectedReportJSON interface{}
-			_ = json.Unmarshal([]byte(executeTemplateString(emptyReportVersioned, hw.report)), &expectedReportJSON)
+			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, hw.report)), &expectedReportJSON)
 
 			So(actualReportJSON, ShouldResemble, expectedReportJSON)
 		})
@@ -46,7 +44,7 @@ const emptyReport = `
   "client_id": "",
   "installMethod": "manual",
   "duration": 0,
-  "processId": "{{.ProcessId}}",
+  "processId": "{{.ProcessID}}",
   "timestamp": -6795364578871,
   "timestampEnd": -6795364578871,
   "aws": {
@@ -62,22 +60,13 @@ const emptyReport = `
   },
   "environment": {
     "agent": {
-      "Runtime": "go",
-      "Version": "0.1.1",
-      "LoadTime": {{.Environment.Agent.LoadTime}}
-    },
-    "go": {
-      "version": "%s",
-      "memoryUsage": {
-        "alloc": {{.Environment.Go.MemoryUsage.Alloc}},
-        "totalAlloc": {{.Environment.Go.MemoryUsage.TotalAlloc}},
-        "sys": {{.Environment.Go.MemoryUsage.Sys}},
-        "numGC": {{.Environment.Go.MemoryUsage.NumGC}}
-      }
+      "runtime": "go",
+      "version": "0.1.1",
+      "load_time": {{.Environment.Agent.LoadTime}}
     },
     "runtime": {
       "name": "go",
-      "version": "%s"
+      "version": "{{.Environment.Runtime.Version}}"
     }
   },
   "coldstart": true,

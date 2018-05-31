@@ -179,8 +179,8 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 		}
 	}
 
-	var memStats runtime.MemStats
-	runtime.ReadMemStats(&memStats)
+	//var memStats runtime.MemStats
+	//runtime.ReadMemStats(&memStats)
 
 	pluginsMeta := make([]interface{}, len(hw.plugins))
 	for index, plugin := range hw.plugins {
@@ -205,7 +205,7 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 		ProcessID:     ProcessID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
 		TimestampEnd:  int(endTime.UnixNano() / 1e6),
-		AWS: AWSReportDetails{
+		AWS: ReportAWS{
 			FunctionName:             lambdacontext.FunctionName,
 			FunctionVersion:          lambdacontext.FunctionVersion,
 			AWSRequestID:             lc.AwsRequestID,
@@ -216,22 +216,13 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 			GetRemainingTimeInMillis: int(time.Until(deadline).Nanoseconds() / 1e6),
 			TraceID:                  os.Getenv("_X_AMZN_TRACE_ID"),
 		},
-		Environment: EnvironmentReportDetails{
-			Agent: EnvironmentAgent{
+		Environment: ReportEnvironment{
+			Agent: ReportEnvironmentAgent{
 				Runtime:  RUNTIME,
 				Version:  VERSION,
 				LoadTime: LoadTime,
 			},
-			Go: EnvironmentGo{
-				Version: runtime.Version(),
-				MemoryUsage: EnvironmentGoMemoryUsage{
-					Alloc:      int(memStats.Alloc),
-					TotalAlloc: int(memStats.TotalAlloc),
-					Sys:        int(memStats.Sys),
-					NumGC:      int(memStats.NumGC),
-				},
-			},
-			Runtime: EnvironmentRuntime{
+			Runtime: ReportEnvironmentRuntime{
 				Name:    RUNTIME,
 				Version: runtime.Version(),
 			},
