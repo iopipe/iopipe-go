@@ -12,10 +12,12 @@ var (
 	ProcessID = GetProcessID()
 	// ColdStart is true if this is a cold start
 	ColdStart = true
-	// RuntimeVersion is the golang runtime version
-	RuntimeVersion = runtime.Version()
+	// RuntimeVersion is the golang runtime version (minus "go" prefix)
+	RuntimeVersion = runtime.Version()[2:]
 	// LoadTime is the unix time the module was loaded
 	LoadTime = int(time.Now().UnixNano() / 1e6)
+	// BootID is the kernel's boot_id
+	BootID = ReadBootID()
 )
 
 const (

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"runtime"
 	"sync"
 	"time"
 
@@ -224,12 +223,15 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 				Version:  VERSION,
 				LoadTime: LoadTime,
 			},
+			Host: ReportEnvironmentHost{
+				BootID: BootID,
+			},
 			OS: ReportEnvironmentOS{
 				Hostname: ReadHostname(),
 			},
 			Runtime: ReportEnvironmentRuntime{
 				Name:    RUNTIME,
-				Version: runtime.Version()[2:],
+				Version: RuntimeVersion,
 			},
 		},
 		ColdStart:     ColdStart,
