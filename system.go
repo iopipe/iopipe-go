@@ -4,7 +4,14 @@ import (
 	"github.com/shirou/gopsutil/host"
 )
 
-func ReadBootTime() uint64 {
-	bootTime, _ := host.BootTime()
-	return bootTime
+// ReadBootID returns the /proc/sys/kernel/random/boot_id
+func ReadBootID() string {
+	info, _ := host.Info()
+	return info.HostID
+}
+
+// ReadHostname returns the system hostname
+func ReadHostname() string {
+	info, _ := host.Info()
+	return info.Hostname
 }
