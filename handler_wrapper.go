@@ -182,6 +182,8 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 	//var memStats runtime.MemStats
 	//runtime.ReadMemStats(&memStats)
 
+	customMetrics := []CustomMetric{}
+
 	pluginsMeta := make([]interface{}, len(hw.plugins))
 	for index, plugin := range hw.plugins {
 		pluginsMeta[index] = plugin.Meta()
@@ -227,8 +229,9 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 				Version: runtime.Version()[2:],
 			},
 		},
-		ColdStart: ColdStart,
-		Errors:    errs,
-		Plugins:   pluginsMeta,
+		ColdStart:     ColdStart,
+		CustomMetrics: customMetrics,
+		Errors:        errs,
+		Plugins:       pluginsMeta,
 	}
 }

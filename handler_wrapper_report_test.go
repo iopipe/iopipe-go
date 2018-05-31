@@ -70,6 +70,7 @@ const emptyReport = `
     }
   },
   "coldstart": true,
+  "custom_metrics": [],
   "errors": {},
   "plugins": []
 }

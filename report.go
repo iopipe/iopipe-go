@@ -12,6 +12,7 @@ type Report struct {
 	Environment   ReportEnvironment `json:"environment"`
 	ColdStart     bool              `json:"coldstart"`
 	Errors        interface{}       `json:"errors"`
+	CustomMetrics []CustomMetric    `json:"custom_metrics"`
 	Plugins       []interface{}     `json:"plugins"`
 }
 
@@ -49,3 +50,10 @@ type ReportEnvironmentRuntime struct {
 
 // Reporter is the reporter interface
 type Reporter func(report *Report) error
+
+// CustomMetric is a custom metric
+type CustomMetric struct {
+	Name string      `json:"name"`
+	S    interface{} `json:"s"`
+	N    interface{} `json:"n"`
+}
