@@ -16,7 +16,7 @@ func TestReport_NewReport(t *testing.T) {
 
 		Convey("Report generated on empty wrapper adheres to spec", func() {
 			r := NewReport(hw)
-			r.Prepare(hw, nil)
+			r.prepare(nil)
 
 			reportJSONBytes, _ := json.Marshal(r)
 

@@ -9,6 +9,7 @@ import (
 
 // Report contains an IOpipe report
 type Report struct {
+	handler       *HandlerWrapper
 	ClientID      string             `json:"client_id"`
 	InstallMethod string             `json:"installMethod"`
 	Duration      int                `json:"duration"`
@@ -20,8 +21,9 @@ type Report struct {
 	ColdStart     bool               `json:"coldstart"`
 	Errors        interface{}        `json:"errors"`
 	CustomMetrics []CustomMetric     `json:"custom_metrics"`
-	Labels        []string           `json:"labels"`
-	Plugins       []interface{}      `json:"plugins"`
+	labels        map[string]struct{}
+	Labels        []string      `json:"labels"`
+	Plugins       []interface{} `json:"plugins"`
 }
 
 // ReportAWS contains AWS invocation details
@@ -79,35 +81,30 @@ type CustomMetric struct {
 }
 
 // NewReport instantiates a new IOpipe report
-func NewReport(hw *HandlerWrapper) *Report {
-	startTime := hw.startTime
-	deadline := hw.deadline
-
-	lc := hw.lambdaContext
+func NewReport(handler *HandlerWrapper) *Report {
+	lc := handler.lambdaContext
 	if lc == nil {
 		lc = &lambdacontext.LambdaContext{
 			AwsRequestID: "ERROR",
 		}
 	}
 
-	customMetrics := []CustomMetric{}
-	labels := make([]string, 0)
-
-	pluginsMeta := make([]interface{}, len(hw.plugins))
-	for index, plugin := range hw.plugins {
+	pluginsMeta := make([]interface{}, len(handler.plugins))
+	for index, plugin := range handler.plugins {
 		pluginsMeta[index] = plugin.Meta()
 	}
 
 	token := ""
-	if hw.agent != nil && hw.agent.Token != nil {
-		token = *hw.agent.Token
+	if handler.agent != nil && handler.agent.Token != nil {
+		token = *handler.agent.Token
 	}
 
 	return &Report{
+		handler:       handler,
 		ClientID:      token,
 		InstallMethod: "manual",
 		ProcessID:     ProcessID,
-		Timestamp:     int(startTime.UnixNano() / 1e6),
+		Timestamp:     int(handler.startTime.UnixNano() / 1e6),
 		AWS: &ReportAWS{
 			FunctionName:             lambdacontext.FunctionName,
 			FunctionVersion:          lambdacontext.FunctionVersion,
@@ -116,7 +113,7 @@ func NewReport(hw *HandlerWrapper) *Report {
 			LogGroupName:             lambdacontext.LogGroupName,
 			LogStreamName:            lambdacontext.LogStreamName,
 			MemoryLimitInMB:          lambdacontext.MemoryLimitInMB,
-			GetRemainingTimeInMillis: int(time.Until(deadline).Nanoseconds() / 1e6),
+			GetRemainingTimeInMillis: int(time.Until(handler.deadline).Nanoseconds() / 1e6),
 			TraceID:                  os.Getenv("_X_AMZN_TRACE_ID"),
 		},
 		Environment: &ReportEnvironment{
@@ -137,17 +134,18 @@ func NewReport(hw *HandlerWrapper) *Report {
 			},
 		},
 		ColdStart:     ColdStart,
-		CustomMetrics: customMetrics,
-		Labels:        labels,
+		CustomMetrics: []CustomMetric{},
+		labels:        make(map[string]struct{}, 0),
+		Labels:        make([]string, 0),
 		Errors:        &struct{}{},
 		Plugins:       pluginsMeta,
 	}
 }
 
 // Prepare prepares an IOpipe report to be sent
-func (r *Report) Prepare(hw *HandlerWrapper, invErr *InvocationError) {
-	r.Duration = int(hw.endTime.Sub(hw.startTime).Nanoseconds())
-	r.TimestampEnd = int(hw.endTime.UnixNano() / 1e6)
+func (r *Report) prepare(invErr *InvocationError) {
+	r.Duration = int(r.handler.endTime.Sub(r.handler.startTime).Nanoseconds())
+	r.TimestampEnd = int(r.handler.endTime.UnixNano() / 1e6)
 
 	if invErr != nil {
 		r.Errors = invErr

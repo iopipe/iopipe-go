@@ -137,7 +137,7 @@ func (hw *HandlerWrapper) PostInvoke(err error) {
 		hErr = NewInvocationError(err)
 	}
 
-	hw.report.Prepare(hw, hErr)
+	hw.report.prepare(hErr)
 	hw.RunHook(HookPreReport)
 
 	// PostInvoke
