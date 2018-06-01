@@ -135,9 +135,8 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			var actualMessage string
 
 			hw.wrappedHandler = wrapperHandlerThatPanics
-
 			hw.reporter = func(report *Report) error {
-				actualMessage = report.Errors.(*InvocationError).Message
+				actualMessage = report.Errors.Message
 				return nil
 			}
 
@@ -202,11 +201,13 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				TimeoutWindow: &timeOutWindow,
 			}}
 			hw.reporter = func(report *Report) error {
-				actualMessage = report.Errors.(*InvocationError).Message
+				actualMessage = report.Errors.Message
 				return nil
 			}
 
 			hw.Invoke(expectedContext, expectedPayload)
+			hw.PostInvoke(nil)
+
 			So(actualMessage, ShouldEqual, "timeout exceeded")
 		})
 

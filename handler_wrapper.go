@@ -3,7 +3,6 @@ package iopipe
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -82,6 +81,7 @@ func (hw *HandlerWrapper) RunHook(hook string) {
 // Invoke invokes the wrapped handler, handling panics and timeouts
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
 	hw.startTime = time.Now()
+	hw.report = NewReport(hw)
 
 	// Handle and report a panic if it occurs
 	defer func() {
@@ -125,10 +125,8 @@ func (hw *HandlerWrapper) PostInvoke(err error) {
 	}
 
 	hw.reportSending = true
-
-	hw.RunHook(HookPostInvoke)
-	hw.RunHook(HookPreReport)
 	hw.endTime = time.Now()
+	hw.RunHook(HookPostInvoke)
 
 	var (
 		ok   bool
@@ -139,7 +137,8 @@ func (hw *HandlerWrapper) PostInvoke(err error) {
 		hErr = NewInvocationError(err)
 	}
 
-	hw.prepareReport(hErr)
+	hw.report.Prepare(hw, hErr)
+	hw.RunHook(HookPreReport)
 
 	// PostInvoke
 	if hw.reporter != nil {
@@ -164,87 +163,5 @@ func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
 		ColdStart = false
 
 		return response, err
-	}
-}
-
-// TODO: Make this a method of Report
-func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
-	if hw.report != nil {
-		return
-	}
-
-	startTime := hw.startTime
-	endTime := hw.endTime
-	deadline := hw.deadline
-
-	lc := hw.lambdaContext
-	if lc == nil {
-		lc = &lambdacontext.LambdaContext{
-			AwsRequestID: "ERROR",
-		}
-	}
-
-	//var memStats runtime.MemStats
-	//runtime.ReadMemStats(&memStats)
-
-	customMetrics := []CustomMetric{}
-	labels := make([]string, 0)
-
-	pluginsMeta := make([]interface{}, len(hw.plugins))
-	for index, plugin := range hw.plugins {
-		pluginsMeta[index] = plugin.Meta()
-	}
-
-	var errs interface{}
-	errs = &struct{}{}
-	if invErr != nil {
-		errs = invErr
-	}
-
-	token := ""
-	if hw.agent != nil && hw.agent.Token != nil {
-		token = *hw.agent.Token
-	}
-
-	hw.report = &Report{
-		ClientID:      token,
-		InstallMethod: "manual",
-		Duration:      int(endTime.Sub(startTime).Nanoseconds()),
-		ProcessID:     ProcessID,
-		Timestamp:     int(startTime.UnixNano() / 1e6),
-		TimestampEnd:  int(endTime.UnixNano() / 1e6),
-		AWS: ReportAWS{
-			FunctionName:             lambdacontext.FunctionName,
-			FunctionVersion:          lambdacontext.FunctionVersion,
-			AWSRequestID:             lc.AwsRequestID,
-			InvokedFunctionArn:       lc.InvokedFunctionArn,
-			LogGroupName:             lambdacontext.LogGroupName,
-			LogStreamName:            lambdacontext.LogStreamName,
-			MemoryLimitInMB:          lambdacontext.MemoryLimitInMB,
-			GetRemainingTimeInMillis: int(time.Until(deadline).Nanoseconds() / 1e6),
-			TraceID:                  os.Getenv("_X_AMZN_TRACE_ID"),
-		},
-		Environment: ReportEnvironment{
-			Agent: ReportEnvironmentAgent{
-				Runtime:  RUNTIME,
-				Version:  VERSION,
-				LoadTime: LoadTime,
-			},
-			Host: ReportEnvironmentHost{
-				BootID: BootID,
-			},
-			OS: ReportEnvironmentOS{
-				Hostname: Hostname,
-			},
-			Runtime: ReportEnvironmentRuntime{
-				Name:    RUNTIME,
-				Version: RuntimeVersion,
-			},
-		},
-		ColdStart:     ColdStart,
-		CustomMetrics: customMetrics,
-		Labels:        labels,
-		Errors:        errs,
-		Plugins:       pluginsMeta,
 	}
 }

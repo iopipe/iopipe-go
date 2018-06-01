@@ -12,7 +12,6 @@ const defaultErrorFrameCount = 32
 const framesToPanicInfo = 3 // (top-of-stack) Callers, getPanicStack -> getPanicInfo -> beyond
 
 func getErrorType(err interface{}) string {
-
 	errorType := reflect.TypeOf(err)
 
 	if errorType.Kind() == reflect.Ptr {

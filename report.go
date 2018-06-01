@@ -9,19 +9,19 @@ import (
 
 // Report contains an IOpipe report
 type Report struct {
-	ClientID      string            `json:"client_id"`
-	InstallMethod string            `json:"installMethod"`
-	Duration      int               `json:"duration"`
-	ProcessID     string            `json:"processId"`
-	Timestamp     int               `json:"timestamp"`
-	TimestampEnd  int               `json:"timestampEnd"`
-	AWS           ReportAWS         `json:"aws"`
-	Environment   ReportEnvironment `json:"environment"`
-	ColdStart     bool              `json:"coldstart"`
-	Errors        interface{}       `json:"errors"`
-	CustomMetrics []CustomMetric    `json:"custom_metrics"`
-	Labels        []string          `json:"labels"`
-	Plugins       []interface{}     `json:"plugins"`
+	ClientID      string             `json:"client_id"`
+	InstallMethod string             `json:"installMethod"`
+	Duration      int                `json:"duration"`
+	ProcessID     string             `json:"processId"`
+	Timestamp     int                `json:"timestamp"`
+	TimestampEnd  int                `json:"timestampEnd"`
+	AWS           *ReportAWS         `json:"aws"`
+	Environment   *ReportEnvironment `json:"environment"`
+	ColdStart     bool               `json:"coldstart"`
+	Errors        *InvocationError   `json:"errors"`
+	CustomMetrics []CustomMetric     `json:"custom_metrics"`
+	Labels        []string           `json:"labels"`
+	Plugins       []interface{}      `json:"plugins"`
 }
 
 // ReportAWS contains AWS invocation details
@@ -39,10 +39,10 @@ type ReportAWS struct {
 
 // ReportEnvironment contains environment information
 type ReportEnvironment struct {
-	Agent   ReportEnvironmentAgent   `json:"agent"`
-	Host    ReportEnvironmentHost    `json:"host"`
-	OS      ReportEnvironmentOS      `json:"os"`
-	Runtime ReportEnvironmentRuntime `json:"runtime"`
+	Agent   *ReportEnvironmentAgent   `json:"agent"`
+	Host    *ReportEnvironmentHost    `json:"host"`
+	OS      *ReportEnvironmentOS      `json:"os"`
+	Runtime *ReportEnvironmentRuntime `json:"runtime"`
 }
 
 // ReportEnvironmentAgent contains information about the IOpipe agent
@@ -108,7 +108,7 @@ func NewReport(hw *HandlerWrapper) *Report {
 		InstallMethod: "manual",
 		ProcessID:     ProcessID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
-		AWS: ReportAWS{
+		AWS: &ReportAWS{
 			FunctionName:             lambdacontext.FunctionName,
 			FunctionVersion:          lambdacontext.FunctionVersion,
 			AWSRequestID:             lc.AwsRequestID,
@@ -119,19 +119,19 @@ func NewReport(hw *HandlerWrapper) *Report {
 			GetRemainingTimeInMillis: int(time.Until(deadline).Nanoseconds() / 1e6),
 			TraceID:                  os.Getenv("_X_AMZN_TRACE_ID"),
 		},
-		Environment: ReportEnvironment{
-			Agent: ReportEnvironmentAgent{
+		Environment: &ReportEnvironment{
+			Agent: &ReportEnvironmentAgent{
 				Runtime:  RUNTIME,
 				Version:  VERSION,
 				LoadTime: LoadTime,
 			},
-			Host: ReportEnvironmentHost{
+			Host: &ReportEnvironmentHost{
 				BootID: BootID,
 			},
-			OS: ReportEnvironmentOS{
+			OS: &ReportEnvironmentOS{
 				Hostname: Hostname,
 			},
-			Runtime: ReportEnvironmentRuntime{
+			Runtime: &ReportEnvironmentRuntime{
 				Name:    RUNTIME,
 				Version: RuntimeVersion,
 			},
@@ -139,22 +139,17 @@ func NewReport(hw *HandlerWrapper) *Report {
 		ColdStart:     ColdStart,
 		CustomMetrics: customMetrics,
 		Labels:        labels,
+		Errors:        &InvocationError{},
 		Plugins:       pluginsMeta,
 	}
 }
 
-func (r *Report) PrepareReport(hw *HandlerWrapper, invErr *InvocationError) {
-	startTime := hw.startTime
-	endTime := hw.endTime
+// Prepare prepares an IOpipe report to be sent
+func (r *Report) Prepare(hw *HandlerWrapper, invErr *InvocationError) {
+	r.Duration = int(hw.endTime.Sub(hw.startTime).Nanoseconds())
+	r.TimestampEnd = int(hw.endTime.UnixNano() / 1e6)
 
-	r.Duration = int(endTime.Sub(startTime).Nanoseconds())
-	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
-
-	var errs interface{}
-	errs = &struct{}{}
 	if invErr != nil {
-		errs = invErr
+		r.Errors = invErr
 	}
-
-	r.Errors = errs
 }
