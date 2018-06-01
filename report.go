@@ -18,7 +18,7 @@ type Report struct {
 	AWS           *ReportAWS         `json:"aws"`
 	Environment   *ReportEnvironment `json:"environment"`
 	ColdStart     bool               `json:"coldstart"`
-	Errors        *InvocationError   `json:"errors"`
+	Errors        interface{}        `json:"errors"`
 	CustomMetrics []CustomMetric     `json:"custom_metrics"`
 	Labels        []string           `json:"labels"`
 	Plugins       []interface{}      `json:"plugins"`
@@ -139,7 +139,7 @@ func NewReport(hw *HandlerWrapper) *Report {
 		ColdStart:     ColdStart,
 		CustomMetrics: customMetrics,
 		Labels:        labels,
-		Errors:        &InvocationError{},
+		Errors:        &struct{}{},
 		Plugins:       pluginsMeta,
 	}
 }

@@ -11,8 +11,6 @@ import (
 )
 
 func TestReport_NewReport(t *testing.T) {
-	t.Skip()
-
 	Convey("Prepare report using information found inside wrapper instance", t, func() {
 		hw := &HandlerWrapper{}
 
@@ -26,7 +24,7 @@ func TestReport_NewReport(t *testing.T) {
 			_ = json.Unmarshal(reportJSONBytes, &actualReportJSON)
 
 			var expectedReportJSON interface{}
-			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, hw.report)), &expectedReportJSON)
+			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, r)), &expectedReportJSON)
 
 			So(actualReportJSON, ShouldResemble, expectedReportJSON)
 		})

@@ -136,7 +136,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 
 			hw.wrappedHandler = wrapperHandlerThatPanics
 			hw.reporter = func(report *Report) error {
-				actualMessage = report.Errors.Message
+				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
 			}
 
@@ -201,7 +201,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				TimeoutWindow: &timeOutWindow,
 			}}
 			hw.reporter = func(report *Report) error {
-				actualMessage = report.Errors.Message
+				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
 			}
 
