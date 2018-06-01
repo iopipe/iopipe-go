@@ -79,7 +79,7 @@ func (hw *HandlerWrapper) RunHook(hook string) {
 	wg.Wait()
 }
 
-// Invoke invokes the wrapped handler
+// Invoke invokes the wrapped handler, handling panics and timeouts
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
 	hw.startTime = time.Now()
 
@@ -92,6 +92,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 		}
 	}()
 
+	// Start the timeout clock and handle timeouts
 	go func() {
 		timeoutWindow := 0 * time.Millisecond
 		if hw.agent != nil && hw.agent.TimeoutWindow != nil {
@@ -117,13 +118,14 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	return hw.wrappedHandler(ctx, payload)
 }
 
-// PostInvoke runs the post invoke hooks
+// PostInvoke prepares a report and sends it
 func (hw *HandlerWrapper) PostInvoke(err error) {
 	if hw.reportSending {
 		return
 	}
 
 	hw.reportSending = true
+
 	hw.RunHook(HookPostInvoke)
 	hw.RunHook(HookPreReport)
 	hw.endTime = time.Now()
@@ -155,7 +157,6 @@ func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
 	// decorate the handler
 	return func(context context.Context, payload interface{}) (interface{}, error) {
 		handlerWrapper := NewHandlerWrapper(handler, agentInstance)
-
 		handlerWrapper.PreInvoke(context)
 		response, err := handlerWrapper.Invoke(context, payload)
 		handlerWrapper.PostInvoke(err)
@@ -187,6 +188,7 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 	//runtime.ReadMemStats(&memStats)
 
 	customMetrics := []CustomMetric{}
+	labels := make([]string, 0)
 
 	pluginsMeta := make([]interface{}, len(hw.plugins))
 	for index, plugin := range hw.plugins {
@@ -241,6 +243,7 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 		},
 		ColdStart:     ColdStart,
 		CustomMetrics: customMetrics,
+		Labels:        labels,
 		Errors:        errs,
 		Plugins:       pluginsMeta,
 	}

@@ -1,5 +1,12 @@
 package iopipe
 
+import (
+	"os"
+	"time"
+
+	"github.com/aws/aws-lambda-go/lambdacontext"
+)
+
 // Report contains an IOpipe report
 type Report struct {
 	ClientID      string            `json:"client_id"`
@@ -13,6 +20,7 @@ type Report struct {
 	ColdStart     bool              `json:"coldstart"`
 	Errors        interface{}       `json:"errors"`
 	CustomMetrics []CustomMetric    `json:"custom_metrics"`
+	Labels        []string          `json:"labels"`
 	Plugins       []interface{}     `json:"plugins"`
 }
 
@@ -68,4 +76,85 @@ type CustomMetric struct {
 	Name string      `json:"name"`
 	S    interface{} `json:"s"`
 	N    interface{} `json:"n"`
+}
+
+// NewReport instantiates a new IOpipe report
+func NewReport(hw *HandlerWrapper) *Report {
+	startTime := hw.startTime
+	deadline := hw.deadline
+
+	lc := hw.lambdaContext
+	if lc == nil {
+		lc = &lambdacontext.LambdaContext{
+			AwsRequestID: "ERROR",
+		}
+	}
+
+	customMetrics := []CustomMetric{}
+	labels := make([]string, 0)
+
+	pluginsMeta := make([]interface{}, len(hw.plugins))
+	for index, plugin := range hw.plugins {
+		pluginsMeta[index] = plugin.Meta()
+	}
+
+	token := ""
+	if hw.agent != nil && hw.agent.Token != nil {
+		token = *hw.agent.Token
+	}
+
+	return &Report{
+		ClientID:      token,
+		InstallMethod: "manual",
+		ProcessID:     ProcessID,
+		Timestamp:     int(startTime.UnixNano() / 1e6),
+		AWS: ReportAWS{
+			FunctionName:             lambdacontext.FunctionName,
+			FunctionVersion:          lambdacontext.FunctionVersion,
+			AWSRequestID:             lc.AwsRequestID,
+			InvokedFunctionArn:       lc.InvokedFunctionArn,
+			LogGroupName:             lambdacontext.LogGroupName,
+			LogStreamName:            lambdacontext.LogStreamName,
+			MemoryLimitInMB:          lambdacontext.MemoryLimitInMB,
+			GetRemainingTimeInMillis: int(time.Until(deadline).Nanoseconds() / 1e6),
+			TraceID:                  os.Getenv("_X_AMZN_TRACE_ID"),
+		},
+		Environment: ReportEnvironment{
+			Agent: ReportEnvironmentAgent{
+				Runtime:  RUNTIME,
+				Version:  VERSION,
+				LoadTime: LoadTime,
+			},
+			Host: ReportEnvironmentHost{
+				BootID: BootID,
+			},
+			OS: ReportEnvironmentOS{
+				Hostname: Hostname,
+			},
+			Runtime: ReportEnvironmentRuntime{
+				Name:    RUNTIME,
+				Version: RuntimeVersion,
+			},
+		},
+		ColdStart:     ColdStart,
+		CustomMetrics: customMetrics,
+		Labels:        labels,
+		Plugins:       pluginsMeta,
+	}
+}
+
+func (r *Report) PrepareReport(hw *HandlerWrapper, invErr *InvocationError) {
+	startTime := hw.startTime
+	endTime := hw.endTime
+
+	r.Duration = int(endTime.Sub(startTime).Nanoseconds())
+	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
+
+	var errs interface{}
+	errs = &struct{}{}
+	if invErr != nil {
+		errs = invErr
+	}
+
+	r.Errors = errs
 }

@@ -77,6 +77,7 @@ const emptyReport = `
   },
   "coldstart": true,
   "custom_metrics": [],
+  "labels": [],
   "errors": {},
   "plugins": []
 }
