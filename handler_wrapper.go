@@ -39,7 +39,7 @@ func NewHandlerWrapper(handler interface{}, agentInstance *Agent) *HandlerWrappe
 	if pluginInstantiators != nil {
 		plugins = make([]Plugin, len(pluginInstantiators))
 		for index, pluginInstantiator := range pluginInstantiators {
-			plugins[index] = pluginInstantiator(hw)
+			plugins[index] = pluginInstantiator()
 		}
 	}
 

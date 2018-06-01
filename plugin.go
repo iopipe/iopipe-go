@@ -1,16 +1,32 @@
 package iopipe
 
-// PluginInstantiator is the function passed the wrapped handler
-type PluginInstantiator func(*HandlerWrapper) Plugin
+// PluginInstantiator is the function that initializes the plugin
+type PluginInstantiator func() Plugin
+
+// PluginMeta is meta data about the plugin
+type PluginMeta struct {
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	Homepage string `json:"homepage"`
+	Enabled  bool   `json:"enabled"`
+}
 
 // Plugin is the interface a plugin should implement
 type Plugin interface {
 	RunHook(string)
-	Meta() interface{}
+	Meta() *PluginMeta
 	Name() string
 	Version() string
 	Homepage() string
 	Enabled() bool
+
+	// Hook methods
+	PreSetup(*Agent)
+	PostSetup(*Agent)
+	PreInvoke(*ContextWrapper)
+	PostInvoke(*ContextWrapper)
+	PreReport(*Report)
+	PostReport(*Report)
 }
 
 // HookPreSetup is ahook run before agent setup
