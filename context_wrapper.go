@@ -11,8 +11,16 @@ type ContextWrapper struct {
 }
 
 // NewContextWrapper returns a new context wrapper
-func NewContextWrapper(ctx *lambdacontext.LambdaContext, handler *HandlerWrapper) *ContextWrapper {
-	return &ContextWrapper{*ctx, handler}
+func NewContextWrapper(ctx lambdacontext.LambdaContext, handler *HandlerWrapper) *ContextWrapper {
+	return &ContextWrapper{ctx, handler}
+}
+
+// Label adds a label to the report
+func (cw *ContextWrapper) Label(name string) {
+	if cw.handler == nil || cw.handler.report == nil {
+		// TODO: Do the equivalent of a warning here
+		return
+	}
 }
 
 // Metric adds a custom metric to the report
@@ -21,6 +29,8 @@ func (cw *ContextWrapper) Metric(name string, value interface{}) {
 		// TODO: Do the equivalent of a warning here
 		return
 	}
+
+	// TODO: Check length of metric name
 
 	s := coerceString(value)
 	if s != nil {

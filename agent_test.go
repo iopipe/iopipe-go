@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewAgent(t *testing.T) {
+func TestAgent_NewAgent(t *testing.T) {
 	Convey("An agent created with empty Config should have default configuration", t, func() {
 		agentWithDefaultConfig := NewAgent(Config{})
 
@@ -64,7 +64,7 @@ func TestNewAgent(t *testing.T) {
 	})
 }
 
-func TestWrapHandler(t *testing.T) {
+func TestAgent_WrapHandler(t *testing.T) {
 	Convey("Returns original handler when Config.Enabled = false", t, func() {
 		handler := func() {}
 		enabled := false
