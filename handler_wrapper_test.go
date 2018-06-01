@@ -71,6 +71,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 		)
 
 		expectedContext := context.Background()
+
 		// important because lambda defers cancelling the context
 		expectedContext, cancelContext := context.WithCancel(expectedContext)
 
@@ -84,12 +85,14 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 
 			panic(fmt.Sprintf("meow-%d", expectedResponse))
 		}
+
 		wrapperHandlerThatSleeps := func(ctx context.Context, payload interface{}) (interface{}, error) {
 			defer cancelContext()
 
 			time.Sleep(50 * time.Millisecond)
 			return nil, nil
 		}
+
 		wrappedHandler := func(ctx context.Context, payload interface{}) (interface{}, error) {
 			defer cancelContext()
 			receivedContext = ctx
@@ -97,6 +100,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 
 			return expectedResponse, expectedError
 		}
+
 		hw := HandlerWrapper{
 			wrappedHandler: wrappedHandler,
 		}
@@ -131,6 +135,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			var actualMessage string
 
 			hw.wrappedHandler = wrapperHandlerThatPanics
+
 			hw.reporter = func(report *Report) error {
 				actualMessage = report.Errors.(*InvocationError).Message
 				return nil
@@ -156,8 +161,8 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				reporterCalled = true
 				return nil
 			}
-
 			hw.Invoke(expectedContext, expectedPayload)
+
 			So(reporterCalled, ShouldBeFalse)
 		})
 
@@ -167,7 +172,6 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			// no timeWindow
 			// after wrappedHandler succeeds 50 ms left for deadline
 			// sleep for 60ms more
-			// report notcalled
 			var reporterCalled bool
 
 			hw.deadline = time.Now().Add(100 * time.Millisecond)
@@ -176,10 +180,11 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				reporterCalled = true
 				return nil
 			}
-
 			hw.Invoke(expectedContext, expectedPayload)
+
 			time.Sleep(60 * time.Millisecond)
-			So(reporterCalled, ShouldBeFalse)
+
+			So(reporterCalled, ShouldBeTrue)
 		})
 
 		Convey("Report deadline subtracts timeWindow", func() {
@@ -213,6 +218,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			var reporterCalled bool
 
 			timeOutWindow := 2000 * time.Millisecond
+
 			hw.wrappedHandler = wrapperHandlerThatSleeps
 			hw.deadline = time.Time{}
 			hw.agent = &Agent{Config: &Config{
@@ -222,12 +228,12 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				reporterCalled = true
 				return nil
 			}
-
 			hw.Invoke(expectedContext, expectedPayload)
+
 			time.Sleep(50 * time.Millisecond)
+
 			So(reporterCalled, ShouldBeFalse)
 		})
-
 	})
 }
 

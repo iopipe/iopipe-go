@@ -82,6 +82,8 @@ func (hw *HandlerWrapper) RunHook(hook string) {
 // Invoke invokes the wrapped handler
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
 	hw.startTime = time.Now()
+
+	// Handle and report a panic if it occurs
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			// the stack trace the client gets will be a bit verbose with mentions of the wrapper
@@ -100,12 +102,15 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 			return
 		}
 
+		timeoutChannel := time.After(time.Until(hw.deadline.Add(-timeoutWindow)))
+
 		select {
-		// naturally the deadline should occur before the context is closed
-		case <-time.After(time.Until(hw.deadline.Add(-timeoutWindow))):
+		// We have timed out
+		case <-timeoutChannel:
+			// Report the timeout
 			hw.PostInvoke(fmt.Errorf("timeout exceeded"))
 		case <-ctx.Done():
-			return // returning not to leak the goroutine
+			hw.PostInvoke(nil)
 		}
 	}()
 
@@ -227,7 +232,7 @@ func (hw *HandlerWrapper) prepareReport(invErr *InvocationError) {
 				BootID: BootID,
 			},
 			OS: ReportEnvironmentOS{
-				Hostname: ReadHostname(),
+				Hostname: Hostname,
 			},
 			Runtime: ReportEnvironmentRuntime{
 				Name:    RUNTIME,

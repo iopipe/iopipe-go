@@ -8,16 +8,23 @@ import (
 )
 
 var (
-	// ProcessID is the ID for this process
-	ProcessID = GetProcessID()
-	// ColdStart is true if this is a cold start
-	ColdStart = true
-	// RuntimeVersion is the golang runtime version (minus "go" prefix)
-	RuntimeVersion = runtime.Version()[2:]
-	// LoadTime is the unix time the module was loaded
-	LoadTime = int(time.Now().UnixNano() / 1e6)
 	// BootID is the kernel's boot_id
 	BootID = ReadBootID()
+
+	// ColdStart is true if this is a cold start
+	ColdStart = true
+
+	// Hostname is the system's hostname
+	Hostname = ReadHostname()
+
+	// LoadTime is the unix time the module was loaded
+	LoadTime = int(time.Now().UnixNano() / 1e6)
+
+	// ProcessID is the ID for this process
+	ProcessID = GetProcessID()
+
+	// RuntimeVersion is the golang runtime version (minus "go" prefix)
+	RuntimeVersion = runtime.Version()[2:]
 )
 
 const (
