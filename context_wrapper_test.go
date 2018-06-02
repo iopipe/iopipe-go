@@ -1,6 +1,7 @@
 package iopipe
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/lambdacontext"
@@ -19,6 +20,39 @@ func TestContextWrapper_NewContextWrapper(t *testing.T) {
 
 		Convey("And provide the handler wrapper", func() {
 			So(cw.handler, ShouldEqual, hw)
+		})
+	})
+}
+
+func TestContextWrapper_Metric(t *testing.T) {
+	Convey("A context wrapper allows custom metrics to be added to a report", t, func() {
+		lc := lambdacontext.LambdaContext{}
+		hw := &HandlerWrapper{}
+		cw := NewContextWrapper(lc, hw)
+
+		Convey("Doesnot panic if there is no report", func() {
+			So(cw.handler.report, ShouldBeNil)
+			So(func() {
+				cw.Metric("foo", "bar")
+			}, ShouldNotPanic)
+		})
+
+		Convey("Add a custom metric to the report", func() {
+			r := NewReport(hw)
+			cw.handler.report = r
+
+			So(len(cw.handler.report.CustomMetrics), ShouldEqual, 0)
+			cw.Metric("foo", "bar")
+			So(len(cw.handler.report.CustomMetrics), ShouldEqual, 1)
+		})
+
+		Convey("Does not add metric if name is too long", func() {
+			r := NewReport(hw)
+			cw.handler.report = r
+
+			So(len(cw.handler.report.CustomMetrics), ShouldEqual, 0)
+			cw.Metric(strings.Repeat("X", 129), "bar")
+			So(len(cw.handler.report.CustomMetrics), ShouldEqual, 0)
 		})
 	})
 }

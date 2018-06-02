@@ -1,6 +1,8 @@
 package iopipe
 
 import (
+	"unicode/utf8"
+
 	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
@@ -30,7 +32,10 @@ func (cw *ContextWrapper) Metric(name string, value interface{}) {
 		return
 	}
 
-	// TODO: Check length of metric name
+	if utf8.RuneCountInString(name) > 128 {
+		// TODO: Do the equivalent of a warning here
+		return
+	}
 
 	s := coerceString(value)
 	if s != nil {
