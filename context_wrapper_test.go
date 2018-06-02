@@ -24,6 +24,30 @@ func TestContextWrapper_NewContextWrapper(t *testing.T) {
 	})
 }
 
+func TestContextWrapper_Label(t *testing.T) {
+	Convey("A context wrapper allows labels to be added to a report", t, func() {
+		lc := lambdacontext.LambdaContext{}
+		hw := &HandlerWrapper{}
+		cw := NewContextWrapper(lc, hw)
+
+		Convey("Doesnot panic if there is no report", func() {
+			So(cw.handler.report, ShouldBeNil)
+			So(func() {
+				cw.Label("foo")
+			}, ShouldNotPanic)
+		})
+
+		Convey("Does not add label if name is too long", func() {
+			r := NewReport(hw)
+			cw.handler.report = r
+
+			So(len(cw.handler.report.labels), ShouldEqual, 0)
+			cw.Label(strings.Repeat("X", 129))
+			So(len(cw.handler.report.labels), ShouldEqual, 0)
+		})
+	})
+}
+
 func TestContextWrapper_Metric(t *testing.T) {
 	Convey("A context wrapper allows custom metrics to be added to a report", t, func() {
 		lc := lambdacontext.LambdaContext{}

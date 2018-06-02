@@ -23,6 +23,12 @@ func (cw *ContextWrapper) Label(name string) {
 		// TODO: Do the equivalent of a warning here
 		return
 	}
+
+	if utf8.RuneCountInString(name) > 128 {
+		// TODO: Do the equivalent of a warning here
+		return
+	}
+
 }
 
 // Metric adds a custom metric to the report
