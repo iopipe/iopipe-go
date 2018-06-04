@@ -13,7 +13,6 @@ type PluginMeta struct {
 
 // Plugin is the interface a plugin should implement
 type Plugin interface {
-	RunHook(string)
 	Meta() *PluginMeta
 	Name() string
 	Version() string
@@ -23,8 +22,8 @@ type Plugin interface {
 	// Hook methods
 	PreSetup(*Agent)
 	PostSetup(*Agent)
-	PreInvoke(*ContextWrapper)
-	PostInvoke(*ContextWrapper)
+	PreInvoke(*ContextWrapper, interface{})
+	PostInvoke(*ContextWrapper, interface{})
 	PreReport(*Report)
 	PostReport(*Report)
 }

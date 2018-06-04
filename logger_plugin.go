@@ -1,7 +1,5 @@
 package iopipe
 
-import "fmt"
-
 // LoggerPluginConfig is the logger plugin configuration
 type LoggerPluginConfig struct {
 	Key string
@@ -9,10 +7,6 @@ type LoggerPluginConfig struct {
 
 type loggerPlugin struct {
 	LoggerPluginConfig
-}
-
-func (p *loggerPlugin) RunHook(hook string) {
-	fmt.Println(fmt.Sprintf("[LOGGER - %s] Running hook: %s", p.Key, hook))
 }
 
 func (p *loggerPlugin) Meta() *PluginMeta {
@@ -40,12 +34,12 @@ func (p *loggerPlugin) Enabled() bool {
 	return true
 }
 
-func (p *loggerPlugin) PreSetup(agent *Agent)              {}
-func (p *loggerPlugin) PostSetup(agent *Agent)             {}
-func (p *loggerPlugin) PreInvoke(context *ContextWrapper)  {}
-func (p *loggerPlugin) PostInvoke(context *ContextWrapper) {}
-func (p *loggerPlugin) PreReport(report *Report)           {}
-func (p *loggerPlugin) PostReport(report *Report)          {}
+func (p *loggerPlugin) PreSetup(agent *Agent)                                   {}
+func (p *loggerPlugin) PostSetup(agent *Agent)                                  {}
+func (p *loggerPlugin) PreInvoke(context *ContextWrapper, payload interface{})  {}
+func (p *loggerPlugin) PostInvoke(context *ContextWrapper, payload interface{}) {}
+func (p *loggerPlugin) PreReport(report *Report)                                {}
+func (p *loggerPlugin) PostReport(report *Report)                               {}
 
 // LoggerPlugin loads the logger plugin
 func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {

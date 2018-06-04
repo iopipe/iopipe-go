@@ -9,10 +9,6 @@ type testPlugin struct {
 	TestPluginConfig
 }
 
-func (p *testPlugin) RunHook(hook string) {
-	p.LastHook = hook
-}
-
 func (p *testPlugin) Meta() *PluginMeta {
 	return &PluginMeta{
 		Name:     p.Name(),
@@ -38,12 +34,12 @@ func (p *testPlugin) Enabled() bool {
 	return true
 }
 
-func (p *testPlugin) PreSetup(agent *Agent)              {}
-func (p *testPlugin) PostSetup(agent *Agent)             {}
-func (p *testPlugin) PreInvoke(context *ContextWrapper)  {}
-func (p *testPlugin) PostInvoke(context *ContextWrapper) {}
-func (p *testPlugin) PreReport(report *Report)           {}
-func (p *testPlugin) PostReport(report *Report)          {}
+func (p *testPlugin) PreSetup(agent *Agent)                                   {}
+func (p *testPlugin) PostSetup(agent *Agent)                                  {}
+func (p *testPlugin) PreInvoke(context *ContextWrapper, payload interface{})  {}
+func (p *testPlugin) PostInvoke(context *ContextWrapper, payload interface{}) {}
+func (p *testPlugin) PreReport(report *Report)                                {}
+func (p *testPlugin) PostReport(report *Report)                               {}
 
 // TestPlugin return a test plugin
 func TestPlugin(config TestPluginConfig) PluginInstantiator {

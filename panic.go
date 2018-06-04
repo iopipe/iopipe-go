@@ -151,3 +151,16 @@ func formatFrame(inputFrame runtime.Frame) *panicErrorStackFrame {
 		Function: function,
 	}
 }
+
+func coerceInvocationError(err error) *InvocationError {
+	var (
+		ok     bool
+		invErr *InvocationError
+	)
+
+	if invErr, ok = err.(*InvocationError); !ok {
+		invErr = NewInvocationError(err)
+	}
+
+	return invErr
+}

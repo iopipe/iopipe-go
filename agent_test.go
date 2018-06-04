@@ -13,11 +13,11 @@ func TestAgent_NewAgent(t *testing.T) {
 		agentWithDefaultConfig := NewAgent(Config{})
 
 		Convey("Agent should be enabled", func() {
-			So(agentWithDefaultConfig.Plugins, ShouldBeEmpty)
+			So(agentWithDefaultConfig.plugins, ShouldBeEmpty)
 		})
 
 		Convey("Plugins should be empty", func() {
-			So(agentWithDefaultConfig.Plugins, ShouldBeEmpty)
+			So(agentWithDefaultConfig.plugins, ShouldBeEmpty)
 		})
 
 		Convey("TimeoutWindow should be 150 ms", func() {
@@ -57,7 +57,7 @@ func TestAgent_NewAgent(t *testing.T) {
 				So(*agentWithCustomConfig.Token, ShouldEqual, test.inputToken)
 				So(*agentWithCustomConfig.Enabled, ShouldEqual, test.inputEnabled)
 				So(*agentWithCustomConfig.TimeoutWindow, ShouldEqual, test.inputTimeoutWindow)
-				So(agentWithCustomConfig.Plugins, ShouldBeEmpty)
+				So(agentWithCustomConfig.plugins, ShouldBeEmpty)
 			})
 		}
 

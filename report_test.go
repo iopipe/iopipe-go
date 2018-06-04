@@ -12,7 +12,8 @@ import (
 
 func TestReport_NewReport(t *testing.T) {
 	Convey("Prepare report using information found inside wrapper instance", t, func() {
-		hw := &HandlerWrapper{}
+		a := NewAgent(Config{})
+		hw := &HandlerWrapper{agent: a}
 
 		Convey("Report generated on empty wrapper adheres to spec", func() {
 			r := NewReport(hw)
@@ -35,10 +36,10 @@ const emptyReport = `
 {
   "client_id": "",
   "installMethod": "manual",
-  "duration": 0,
+  "duration": {{.Duration}},
   "processId": "{{.ProcessID}}",
-  "timestamp": -6795364578871,
-  "timestampEnd": -6795364578871,
+  "timestamp": {{.Timestamp}},
+  "timestampEnd": {{.TimestampEnd}},
   "aws": {
     "functionName": "",
     "functionVersion": "",

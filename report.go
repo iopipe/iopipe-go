@@ -1,6 +1,7 @@
 package iopipe
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -9,7 +10,10 @@ import (
 
 // Report contains an IOpipe report
 type Report struct {
-	handler       *HandlerWrapper
+	agent         *Agent
+	reportSending bool
+	startTime     time.Time
+
 	ClientID      string             `json:"client_id"`
 	InstallMethod string             `json:"installMethod"`
 	Duration      int                `json:"duration"`
@@ -82,6 +86,9 @@ type CustomMetric struct {
 
 // NewReport instantiates a new IOpipe report
 func NewReport(handler *HandlerWrapper) *Report {
+	startTime := time.Now()
+	agent := handler.agent
+
 	lc := handler.lambdaContext
 	if lc == nil {
 		lc = &lambdacontext.LambdaContext{
@@ -89,22 +96,23 @@ func NewReport(handler *HandlerWrapper) *Report {
 		}
 	}
 
-	pluginsMeta := make([]interface{}, len(handler.plugins))
-	for index, plugin := range handler.plugins {
+	pluginsMeta := make([]interface{}, len(agent.plugins))
+	for index, plugin := range agent.plugins {
 		pluginsMeta[index] = plugin.Meta()
 	}
 
 	token := ""
-	if handler.agent != nil && handler.agent.Token != nil {
-		token = *handler.agent.Token
+	if agent != nil && agent.Token != nil {
+		token = *agent.Token
 	}
 
 	return &Report{
-		handler:       handler,
+		agent:         agent,
+		startTime:     startTime,
 		ClientID:      token,
 		InstallMethod: "manual",
 		ProcessID:     ProcessID,
-		Timestamp:     int(handler.startTime.UnixNano() / 1e6),
+		Timestamp:     int(startTime.UnixNano() / 1e6),
 		AWS: &ReportAWS{
 			FunctionName:             lambdacontext.FunctionName,
 			FunctionVersion:          lambdacontext.FunctionVersion,
@@ -143,11 +151,28 @@ func NewReport(handler *HandlerWrapper) *Report {
 }
 
 // Prepare prepares an IOpipe report to be sent
-func (r *Report) prepare(invErr *InvocationError) {
-	r.Duration = int(r.handler.endTime.Sub(r.handler.startTime).Nanoseconds())
-	r.TimestampEnd = int(r.handler.endTime.UnixNano() / 1e6)
+func (r *Report) prepare(err error) {
+	endTime := time.Now()
+	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
+	r.Duration = int(endTime.Sub(r.startTime).Nanoseconds())
 
-	if invErr != nil {
-		r.Errors = invErr
+	if err != nil {
+		r.Errors = coerceInvocationError(err)
+	}
+}
+
+func (r *Report) send() {
+	if r.reportSending {
+		return
+	}
+
+	r.reportSending = true
+
+	if r.agent.Reporter != nil {
+		err := r.agent.Reporter(r)
+		if err != nil {
+			// TODO: We want to log an error during reporting
+			fmt.Println("Reporting errored: ", err)
+		}
 	}
 }
