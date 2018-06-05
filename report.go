@@ -10,9 +10,9 @@ import (
 
 // Report contains an IOpipe report
 type Report struct {
-	agent         *Agent
-	reportSending bool
-	startTime     time.Time
+	agent     *Agent
+	sending   bool
+	startTime time.Time
 
 	ClientID      string             `json:"client_id"`
 	InstallMethod string             `json:"installMethod"`
@@ -107,8 +107,10 @@ func NewReport(handler *HandlerWrapper) *Report {
 	}
 
 	return &Report{
-		agent:         agent,
-		startTime:     startTime,
+		agent:     agent,
+		sending:   false,
+		startTime: startTime,
+
 		ClientID:      token,
 		InstallMethod: "manual",
 		ProcessID:     ProcessID,
@@ -166,11 +168,11 @@ func (r *Report) prepare(err error) {
 }
 
 func (r *Report) send() {
-	if r.reportSending {
+	if r.sending {
 		return
 	}
 
-	r.reportSending = true
+	r.sending = true
 
 	if r.agent != nil && r.agent.Reporter != nil {
 		err := r.agent.Reporter(r)

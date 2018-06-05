@@ -1,5 +1,7 @@
 package iopipe
 
+import "context"
+
 // TestPluginConfig is a test plugin config
 type TestPluginConfig struct {
 	LastHook string
@@ -34,12 +36,12 @@ func (p *testPlugin) Enabled() bool {
 	return true
 }
 
-func (p *testPlugin) PreSetup(agent *Agent)                                   {}
-func (p *testPlugin) PostSetup(agent *Agent)                                  {}
-func (p *testPlugin) PreInvoke(context *ContextWrapper, payload interface{})  {}
-func (p *testPlugin) PostInvoke(context *ContextWrapper, payload interface{}) {}
-func (p *testPlugin) PreReport(report *Report)                                {}
-func (p *testPlugin) PostReport(report *Report)                               {}
+func (p *testPlugin) PreSetup(agent *Agent)                               {}
+func (p *testPlugin) PostSetup(agent *Agent)                              {}
+func (p *testPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
+func (p *testPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
+func (p *testPlugin) PreReport(report *Report)                            {}
+func (p *testPlugin) PostReport(report *Report)                           {}
 
 // TestPlugin return a test plugin
 func TestPlugin(config TestPluginConfig) PluginInstantiator {

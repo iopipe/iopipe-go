@@ -1,5 +1,7 @@
 package iopipe
 
+import "context"
+
 // LoggerPluginConfig is the logger plugin configuration
 type LoggerPluginConfig struct {
 	Key string
@@ -34,12 +36,12 @@ func (p *loggerPlugin) Enabled() bool {
 	return true
 }
 
-func (p *loggerPlugin) PreSetup(agent *Agent)                                   {}
-func (p *loggerPlugin) PostSetup(agent *Agent)                                  {}
-func (p *loggerPlugin) PreInvoke(context *ContextWrapper, payload interface{})  {}
-func (p *loggerPlugin) PostInvoke(context *ContextWrapper, payload interface{}) {}
-func (p *loggerPlugin) PreReport(report *Report)                                {}
-func (p *loggerPlugin) PostReport(report *Report)                               {}
+func (p *loggerPlugin) PreSetup(agent *Agent)                               {}
+func (p *loggerPlugin) PostSetup(agent *Agent)                              {}
+func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
+func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
+func (p *loggerPlugin) PreReport(report *Report)                            {}
+func (p *loggerPlugin) PostReport(report *Report)                           {}
 
 // LoggerPlugin loads the logger plugin
 func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {

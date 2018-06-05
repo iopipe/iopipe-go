@@ -17,8 +17,6 @@ type HandlerWrapper struct {
 	lambdaContext   *lambdacontext.LambdaContext
 	originalHandler interface{}
 	report          *Report
-	reportSending   bool
-	wrappedContext  *ContextWrapper
 	wrappedHandler  lambdaHandler
 }
 
@@ -31,19 +29,23 @@ func NewHandlerWrapper(handler interface{}, agent *Agent) *HandlerWrapper {
 	}
 }
 
-// Invoke invokes the wrapped handler
 // Invoke invokes the wrapped handler, handling panics and timeouts
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
 	hw.deadline, _ = ctx.Deadline()
-	hw.lambdaContext, _ = lambdacontext.FromContext(ctx)
-	hw.wrappedContext = NewContextWrapper(hw.lambdaContext, hw)
 	hw.report = NewReport(hw)
-	hw.preInvoke(hw.wrappedContext, payload)
+
+	lc, _ := lambdacontext.FromContext(ctx)
+	hw.lambdaContext = lc
+
+	cw := NewContextWrapper(lc, hw)
+	ctx = NewContext(ctx, cw)
+
+	hw.preInvoke(ctx, payload)
 
 	// Handle and report a panic if it occurs
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
-			hw.postInvoke(hw.wrappedContext, payload)
+			hw.postInvoke(ctx, payload)
 			hw.Error(NewPanicInvocationError(panicErr))
 			panic(panicErr)
 		}
@@ -57,7 +59,6 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 			timeoutWindow = *hw.agent.TimeoutWindow
 		}
 
-		// FIXME: Not consistent with other agents
 		if hw.deadline.IsZero() {
 			return
 		}
@@ -68,11 +69,11 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 		// We have timed out
 		case <-timeoutChannel:
 			fmt.Println("Function is about to timeout, sending report")
-			hw.postInvoke(hw.wrappedContext, payload)
+			hw.postInvoke(ctx, payload)
 			hw.Error(fmt.Errorf("timeout exceeded"))
 		case <-ctx.Done():
-			if hw.report != nil && !hw.report.reportSending {
-				hw.postInvoke(hw.wrappedContext, payload)
+			if hw.report != nil && !hw.report.sending {
+				hw.postInvoke(ctx, payload)
 				hw.report.prepare(nil)
 				hw.preReport(hw.report)
 				hw.report.send()
@@ -85,8 +86,8 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	ColdStart = false
 
-	if hw.report != nil && !hw.report.reportSending {
-		hw.postInvoke(hw.wrappedContext, payload)
+	if hw.report != nil && !hw.report.sending {
+		hw.postInvoke(ctx, payload)
 		hw.report.prepare(err)
 		hw.preReport(hw.report)
 		hw.report.send()
@@ -104,7 +105,7 @@ func (hw *HandlerWrapper) Error(err error) {
 		return
 	}
 
-	if !hw.reportSending {
+	if !hw.report.sending {
 		hw.report.prepare(err)
 		hw.preReport(hw.report)
 		hw.report.send()
@@ -152,7 +153,7 @@ func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 	}
 }
 
-func (hw *HandlerWrapper) preInvoke(ctx *ContextWrapper, payload interface{}) {
+func (hw *HandlerWrapper) preInvoke(ctx context.Context, payload interface{}) {
 	var wg sync.WaitGroup
 	wg.Add(len(hw.agent.plugins))
 
@@ -169,7 +170,7 @@ func (hw *HandlerWrapper) preInvoke(ctx *ContextWrapper, payload interface{}) {
 	wg.Wait()
 }
 
-func (hw *HandlerWrapper) postInvoke(ctx *ContextWrapper, payload interface{}) {
+func (hw *HandlerWrapper) postInvoke(ctx context.Context, payload interface{}) {
 	var wg sync.WaitGroup
 	wg.Add(len(hw.agent.plugins))
 
@@ -177,7 +178,7 @@ func (hw *HandlerWrapper) postInvoke(ctx *ContextWrapper, payload interface{}) {
 		go func(plugin Plugin) {
 			defer wg.Done()
 
-			if plugin != nil {
+			if plugin != nil && plugin.Enabled() {
 				plugin.PostInvoke(ctx, payload)
 			}
 		}(plugin)

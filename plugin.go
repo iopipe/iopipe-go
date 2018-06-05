@@ -1,5 +1,7 @@
 package iopipe
 
+import "context"
+
 // PluginInstantiator is the function that initializes the plugin
 type PluginInstantiator func() Plugin
 
@@ -22,8 +24,8 @@ type Plugin interface {
 	// Hook methods
 	PreSetup(*Agent)
 	PostSetup(*Agent)
-	PreInvoke(*ContextWrapper, interface{})
-	PostInvoke(*ContextWrapper, interface{})
+	PreInvoke(context.Context, interface{})
+	PostInvoke(context.Context, interface{})
 	PreReport(*Report)
 	PostReport(*Report)
 }
