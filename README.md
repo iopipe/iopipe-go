@@ -1,24 +1,42 @@
 # IOpipe Agent for Go (alpha)
+
 This package provides analytics and distributed tracing for event-driven applications running on AWS Lambda.
 
 _WARNING! This library is in an alpha state, use at your own risk!_
 
 - [Installation](#installation)
+- [Usage](#usage)
+  - [Contexts](#contexts)
+  - [Custom Metrics](#custom-metrics)
+  - [Labels](#labels)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
 
+Using `go get`:
+
+```bash
+go get https://github.com/iopipe/iopipe-go
+```
+
+Using `dep`:
+
+```bash
+dep ensure -add github.com/iopipe/iopipe-go
+```
+
+## Usage
+
 Set the `IOPIPE_TOKEN` environment variable to [your project token](https://dashboard.iopipe.com/install),
-import this library, instantiate an agent, and wrap your handler that you expose
-to AWS. An example follows:
+
+import this library, instantiate an agent, and wrap your handler that you expose to AWS:
 
 ```go
 import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/iopipe/iopipe-go"
 )
-
 
 var agent = iopipe.NewAgent(iopipe.Config{})
 
@@ -31,9 +49,116 @@ func main() {
 }
 ```
 
-The `Config` struct offers further options for configuring how your function
-interacts with IOpipe, please refer to the [godoc](https://godoc.org/github.com/iopipe/iopipe-go#Config)
-for more information.
+The `iopipe.Config` struct offers further options for configuring how your function interacts with IOpipe, please refer
+to the [godoc](https://godoc.org/github.com/iopipe/iopipe-go#Config)for more information.
+
+## Contexts
+
+The IOpipe agent wraps the `lambdacontext.LambdaContext`. So instead of doing this:
+
+```go
+import (
+	"context"
+	"fmt"
+
+	"github.com/aws/aws-lambda-go/lambda"
+)
+
+func hello(ctx context.Context) (string, error) {
+	context, _ := lambdacontext.FromContext(ctx)
+
+	return fmt.Sprintf("My requestId is %s", context.AwsRequestID), nil
+}
+
+func main() {
+	lambda.Start(agent.WrapHandler(hello))
+}
+```
+
+You can do this:
+
+```go
+import (
+	"context"
+	"fmt"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/iopipe/iopipe-go"
+)
+
+var agent = iopipe.NewAgent(iopipe.Config{})
+
+func hello(ctx context.Context) (string, error) {
+	context, _ := iopipe.FromContext(ctx)
+
+	return fmt.Sprintf("My requestId is %s", context.AwsRequestID), nil
+}
+
+func main() {
+	lambda.Start(agent.WrapHandler(hello))
+}
+```
+
+And the `lambdacontext.LambdaContext` will be embedded in `context`. In addition to this, `iopipe.FromContext()` also
+attaches `context.iopipe` which exposes methods to instrument your functions. See the sections below for examples.
+
+### Custom Metrics
+
+You can log custom values in the data sent upstream to IOpipe using the following syntax:
+
+```go
+import (
+	"context"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/iopipe/iopipe-go"
+)
+
+var agent = iopipe.NewAgent(iopipe.Config{})
+
+func hello(ctx context.Context) (string, error) {
+	context, _ := iopipe.FromContext(ctx)
+
+	// numerical (int, float) and string types supported for values
+	context.iopipe.Metric("my_metric", 42)
+
+	return "Hello ƛ!", nil
+}
+
+func main() {
+	lambda.Start(agent.WrapHandler(hello))
+}
+```
+
+Metric key names are limited to 128 characters, and string values are limited to 1024 characters.
+
+### Labels
+
+Invocation labels can be sent to IOpipe by calling the `Label` method with a string (limit of 128 characters):
+
+```go
+import (
+	"context"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/iopipe/iopipe-go"
+)
+
+var agent = iopipe.NewAgent(iopipe.Config{})
+
+func hello(ctx context.Context) (string, error) {
+	context, _ := iopipe.FromContext(ctx)
+
+	// the name of the label must be a string
+	context.iopipe.Label("this-invocation-is-special")
+
+	return "Hello ƛ!", nil
+}
+
+func main() {
+	lambda.Start(agent.WrapHandler(hello))
+}
+```
 
 ## Contributing
 

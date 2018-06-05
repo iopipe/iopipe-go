@@ -2,7 +2,15 @@ package iopipe
 
 import (
 	"context"
+
+	"github.com/aws/aws-lambda-go/lambdacontext"
 )
+
+// ContextWrapper wraps the AWS lambda context
+type ContextWrapper struct {
+	*lambdacontext.LambdaContext
+	iopipe *HandlerWrapper
+}
 
 type key struct{}
 
@@ -17,4 +25,9 @@ func NewContext(parent context.Context, cw *ContextWrapper) context.Context {
 func FromContext(ctx context.Context) (*ContextWrapper, bool) {
 	cw, ok := ctx.Value(contextKey).(*ContextWrapper)
 	return cw, ok
+}
+
+// NewContextWrapper returns a new context wrapper
+func NewContextWrapper(ctx *lambdacontext.LambdaContext, handler *HandlerWrapper) *ContextWrapper {
+	return &ContextWrapper{ctx, handler}
 }
