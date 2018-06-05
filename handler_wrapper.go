@@ -43,13 +43,8 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	// Handle and report a panic if it occurs
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
-			// the stack trace the client gets will be a bit verbose with mentions of the wrapper
 			hw.postInvoke(hw.wrappedContext, payload)
-			hw.report.prepare(NewPanicInvocationError(panicErr))
-			hw.preReport(hw.report)
-			hw.preReport(hw.report)
-			hw.report.send()
-			hw.postReport(hw.report)
+			hw.Error(NewPanicInvocationError(panicErr))
 			panic(panicErr)
 		}
 	}()
@@ -57,10 +52,12 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	// Start the timeout clock and handle timeouts
 	go func() {
 		timeoutWindow := 0 * time.Millisecond
+
 		if hw.agent != nil && hw.agent.TimeoutWindow != nil {
 			timeoutWindow = *hw.agent.TimeoutWindow
 		}
 
+		// FIXME: Not consistent with other agents
 		if hw.deadline.IsZero() {
 			return
 		}
@@ -70,18 +67,17 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 		select {
 		// We have timed out
 		case <-timeoutChannel:
-			// Report the timeout
+			fmt.Println("Function is about to timeout, sending report")
 			hw.postInvoke(hw.wrappedContext, payload)
-			hw.report.prepare(fmt.Errorf("timeout exceeded"))
-			hw.preReport(hw.report)
-			hw.report.send()
-			hw.postReport(hw.report)
+			hw.Error(fmt.Errorf("timeout exceeded"))
 		case <-ctx.Done():
-			hw.postInvoke(hw.wrappedContext, payload)
-			hw.report.prepare(nil)
-			hw.preReport(hw.report)
-			hw.report.send()
-			hw.postReport(hw.report)
+			if hw.report != nil && !hw.report.reportSending {
+				hw.postInvoke(hw.wrappedContext, payload)
+				hw.report.prepare(nil)
+				hw.preReport(hw.report)
+				hw.report.send()
+				hw.postReport(hw.report)
+			}
 		}
 	}()
 
@@ -89,27 +85,45 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	ColdStart = false
 
-	hw.postInvoke(hw.wrappedContext, payload)
-	hw.report.prepare(err)
-	hw.preReport(hw.report)
-	hw.report.send()
-	hw.postReport(hw.report)
+	if hw.report != nil && !hw.report.reportSending {
+		hw.postInvoke(hw.wrappedContext, payload)
+		hw.report.prepare(err)
+		hw.preReport(hw.report)
+		hw.report.send()
+		hw.postReport(hw.report)
+	}
 
 	return response, err
 }
 
 // Label adds a label to the report
+// Error adds an  error to the report
+func (hw *HandlerWrapper) Error(err error) {
+	if hw.report == nil {
+		fmt.Println("Attempting to add error before function decorated with IOpipe. This error will not be recorded.")
+		return
+	}
+
+	if !hw.reportSending {
+		hw.report.prepare(err)
+		hw.preReport(hw.report)
+		hw.report.send()
+		hw.postReport(hw.report)
+	}
+}
+
 func (hw *HandlerWrapper) Label(name string) {
 	if hw.report == nil {
-		// TODO: Do the equivalent of a warning here
+		fmt.Println("Attempting to add labels before function decorated with IOpipe. This metric will not be recorded.")
 		return
 	}
 
 	if utf8.RuneCountInString(name) > 128 {
-		// TODO: Do the equivalent of a warning here
+		fmt.Println(fmt.Sprintf("Label name %s is longer than allowed limit of 128 characters. This label will not be recorded.", name))
 		return
 	}
 
+	// USing map to ensure uniqueness of labels
 	if _, ok := hw.report.labels[name]; !ok {
 		hw.report.labels[name] = struct{}{}
 	}
@@ -118,12 +132,12 @@ func (hw *HandlerWrapper) Label(name string) {
 // Metric adds a custom metric to the report
 func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 	if hw.report == nil {
-		// TODO: Do the equivalent of a warning here
+		fmt.Println("Attempting to add metrics before function decorated with IOpipe. This metric will not be recorded.")
 		return
 	}
 
 	if utf8.RuneCountInString(name) > 128 {
-		// TODO: Do the equivalent of a warning here
+		fmt.Println(fmt.Sprintf("Metric of name %s is longer than allowed limit of 128 characters. This metric will not be recorded.", name))
 		return
 	}
 

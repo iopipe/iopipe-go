@@ -2,6 +2,7 @@ package iopipe
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -86,12 +87,19 @@ func NewAgent(config Config) *Agent {
 
 // WrapHandler wraps the handler with the IOpipe agent
 func (a *Agent) WrapHandler(handler interface{}) interface{} {
-	// Only wrap the handler if the agent is enabled and the token is not nil or
-	// an empty string
-	if a.Enabled != nil && *a.Enabled && a.Token != nil && *a.Token != "" {
-		return wrapHandler(handler, a)
+	fmt.Println(fmt.Sprintf("%s wrapped with IOpipe decorator", getFuncName(handler)))
+
+	if a.Enabled != nil && !*a.Enabled {
+		fmt.Println("IOpipe agent disabled, skipping reporting")
+		return handler
 	}
-	return handler
+
+	if a.Token != nil && *a.Token == "" {
+		fmt.Println("Your function is decorated with iopipe, but a valid token was not found. Set the IOPIPE_TOKEN environment variable with your IOpipe project token.")
+		return handler
+	}
+
+	return wrapHandler(handler, a)
 }
 
 func (a *Agent) preSetup() {
