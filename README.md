@@ -19,13 +19,14 @@ import (
 	"github.com/iopipe/iopipe-go"
 )
 
+
+var agent = iopipe.NewAgent(iopipe.Config{})
+
 func hello() (string, error) {
 	return "Hello ƛ!", nil
 }
 
 func main() {
-	agent := iopipe.NewAgent(iopipe.Config{})
-
 	lambda.Start(agent.WrapHandler(hello))
 }
 ```

@@ -13,19 +13,32 @@ func TestHandlerWrapper_Label(t *testing.T) {
 		hw := &HandlerWrapper{agent: a}
 
 		Convey("Doesnot panic if there is no report", func() {
+
 			So(hw.report, ShouldBeNil)
 			So(func() {
 				hw.Label("foo")
 			}, ShouldNotPanic)
 		})
 
+		Convey("Add a label to the report", func() {
+			r := NewReport(hw)
+			hw.report = r
+
+			So(len(r.labels), ShouldEqual, 0)
+			hw.Label("foobar")
+			So(len(r.labels), ShouldEqual, 1)
+
+			r.prepare(nil)
+			So(len(r.Labels), ShouldEqual, 1)
+		})
+
 		Convey("Does not add label if name is too long", func() {
 			r := NewReport(hw)
 			hw.report = r
 
-			So(len(hw.report.labels), ShouldEqual, 0)
+			So(len(r.labels), ShouldEqual, 0)
 			hw.Label(strings.Repeat("X", 129))
-			So(len(hw.report.labels), ShouldEqual, 0)
+			So(len(r.labels), ShouldEqual, 0)
 		})
 	})
 }

@@ -109,6 +109,10 @@ func (hw *HandlerWrapper) Label(name string) {
 		// TODO: Do the equivalent of a warning here
 		return
 	}
+
+	if _, ok := hw.report.labels[name]; !ok {
+		hw.report.labels[name] = struct{}{}
+	}
 }
 
 // Metric adds a custom metric to the report

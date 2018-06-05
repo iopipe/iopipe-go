@@ -9,11 +9,11 @@ import (
 
 // Config is the config object passed to agent initialization
 type Config struct {
-	Reporter            Reporter
-	Token               *string
-	TimeoutWindow       *time.Duration
 	Enabled             *bool
 	PluginInstantiators []PluginInstantiator
+	Reporter            Reporter
+	TimeoutWindow       *time.Duration
+	Token               *string
 }
 
 // Agent is the IOpipe instance

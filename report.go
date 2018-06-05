@@ -159,6 +159,10 @@ func (r *Report) prepare(err error) {
 	if err != nil {
 		r.Errors = coerceInvocationError(err)
 	}
+
+	for label := range r.labels {
+		r.Labels = append(r.Labels, label)
+	}
 }
 
 func (r *Report) send() {
@@ -168,8 +172,9 @@ func (r *Report) send() {
 
 	r.reportSending = true
 
-	if r.agent.Reporter != nil {
+	if r.agent != nil && r.agent.Reporter != nil {
 		err := r.agent.Reporter(r)
+
 		if err != nil {
 			// TODO: We want to log an error during reporting
 			fmt.Println("Reporting errored: ", err)
