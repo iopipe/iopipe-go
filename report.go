@@ -3,6 +3,7 @@ package iopipe
 import (
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambdacontext"
@@ -174,12 +175,49 @@ func (r *Report) send() {
 
 	r.sending = true
 
+	r.preReport()
+
 	if r.agent != nil && r.agent.Reporter != nil {
 		err := r.agent.Reporter(r)
 
 		if err != nil {
-			// TODO: We want to log an error during reporting
-			fmt.Println("Reporting errored: ", err)
+			fmt.Println("Reporting error: ", err)
 		}
 	}
+
+	r.postReport()
+}
+
+func (r *Report) preReport() {
+	var wg sync.WaitGroup
+	wg.Add(len(r.agent.plugins))
+
+	for _, plugin := range r.agent.plugins {
+		go func(plugin Plugin) {
+			defer wg.Done()
+
+			if plugin != nil && plugin.Enabled() {
+				plugin.PreReport(r)
+			}
+		}(plugin)
+	}
+
+	wg.Wait()
+}
+
+func (r *Report) postReport() {
+	var wg sync.WaitGroup
+	wg.Add(len(r.agent.plugins))
+
+	for _, plugin := range r.agent.plugins {
+		go func(plugin Plugin) {
+			defer wg.Done()
+
+			if plugin != nil && plugin.Enabled() {
+				plugin.PostReport(r)
+			}
+		}(plugin)
+	}
+
+	wg.Wait()
 }

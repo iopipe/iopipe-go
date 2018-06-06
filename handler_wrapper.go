@@ -75,9 +75,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 			if hw.report != nil && !hw.report.sending {
 				hw.postInvoke(ctx, payload)
 				hw.report.prepare(nil)
-				hw.preReport(hw.report)
 				hw.report.send()
-				hw.postReport(hw.report)
 			}
 		}
 	}()
@@ -89,9 +87,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	if hw.report != nil && !hw.report.sending {
 		hw.postInvoke(ctx, payload)
 		hw.report.prepare(err)
-		hw.preReport(hw.report)
 		hw.report.send()
-		hw.postReport(hw.report)
 	}
 
 	return response, err
@@ -107,9 +103,7 @@ func (hw *HandlerWrapper) Error(err error) {
 
 	if !hw.report.sending {
 		hw.report.prepare(err)
-		hw.preReport(hw.report)
 		hw.report.send()
-		hw.postReport(hw.report)
 	}
 }
 
@@ -180,40 +174,6 @@ func (hw *HandlerWrapper) postInvoke(ctx context.Context, payload interface{}) {
 
 			if plugin != nil && plugin.Enabled() {
 				plugin.PostInvoke(ctx, payload)
-			}
-		}(plugin)
-	}
-
-	wg.Wait()
-}
-
-func (hw *HandlerWrapper) preReport(report *Report) {
-	var wg sync.WaitGroup
-	wg.Add(len(hw.agent.plugins))
-
-	for _, plugin := range hw.agent.plugins {
-		go func(plugin Plugin) {
-			defer wg.Done()
-
-			if plugin != nil {
-				plugin.PreReport(report)
-			}
-		}(plugin)
-	}
-
-	wg.Wait()
-}
-
-func (hw *HandlerWrapper) postReport(report *Report) {
-	var wg sync.WaitGroup
-	wg.Add(len(hw.agent.plugins))
-
-	for _, plugin := range hw.agent.plugins {
-		go func(plugin Plugin) {
-			defer wg.Done()
-
-			if plugin != nil {
-				plugin.PostReport(report)
 			}
 		}(plugin)
 	}
