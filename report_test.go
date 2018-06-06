@@ -56,11 +56,6 @@ const emptyReport = `
 	  "usedMiB": {{.Disk.UsedMiB}},
 	  "usedPercentage": {{.Disk.UsedPercentage}}
   },
-  "memory": {
-	  "rssMiB": {{.Memory.UsedMiB}},
-	  "totalMiB": {{.Memory.TotalMiB}},
-	  "rssTotalPercentage": {{.Memory.UsedPercentage}}
-  },
   "environment": {
     "agent": {
       "runtime": "go",
