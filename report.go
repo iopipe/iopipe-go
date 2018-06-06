@@ -22,6 +22,7 @@ type Report struct {
 	Timestamp     int                `json:"timestamp"`
 	TimestampEnd  int                `json:"timestampEnd"`
 	AWS           *ReportAWS         `json:"aws"`
+	Disk          *ReportDisk        `json:"disk"`
 	Environment   *ReportEnvironment `json:"environment"`
 	ColdStart     bool               `json:"coldstart"`
 	Errors        interface{}        `json:"errors"`
@@ -42,6 +43,13 @@ type ReportAWS struct {
 	MemoryLimitInMB          int    `json:"memoryLimitInMB"`
 	GetRemainingTimeInMillis int    `json:"getRemainingTimeInMillis"`
 	TraceID                  string `json:"traceId"`
+}
+
+// ReportDisk contains disk usage information
+type ReportDisk struct {
+	TotalMiB       float64 `json:"totalMiB"`
+	UsedMiB        float64 `json:"usedMiB"`
+	UsedPercentage float64 `json:"usedPercentage"`
 }
 
 // ReportEnvironment contains environment information
@@ -153,7 +161,7 @@ func NewReport(handler *HandlerWrapper) *Report {
 	}
 }
 
-// Prepare prepares an IOpipe report to be sent
+// prepare prepares an IOpipe report to be sent
 func (r *Report) prepare(err error) {
 	endTime := time.Now()
 	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
@@ -165,6 +173,13 @@ func (r *Report) prepare(err error) {
 
 	for label := range r.labels {
 		r.Labels = append(r.Labels, label)
+	}
+
+	disk := readDisk()
+	r.Disk = &ReportDisk{
+		TotalMiB:       disk.totalMiB,
+		UsedMiB:        disk.usedMiB,
+		UsedPercentage: disk.usedPercentage,
 	}
 }
 

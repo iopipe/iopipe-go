@@ -51,6 +51,11 @@ const emptyReport = `
     "getRemainingTimeInMillis": -9223372036854,
     "traceId": ""
   },
+  "disk": {
+	  "totalMiB": {{.Disk.TotalMiB}},
+	  "usedMiB": {{.Disk.UsedMiB}},
+	  "usedPercentage": {{.Disk.UsedPercentage}}
+  },
   "environment": {
     "agent": {
       "runtime": "go",

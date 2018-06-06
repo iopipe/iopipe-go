@@ -6,30 +6,40 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func BenchmarkReadBootID(b *testing.B) {
+func benchmarkReadBootID(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		ReadBootID()
+		readBootID()
 	}
 }
 
-func TestSystem_ReadBootID(t *testing.T) {
-	Convey("ReadBootId should return the system boot ID", t, func() {
-		bootID := ReadBootID()
+func TestSystem_readBootID(t *testing.T) {
+	Convey("readBootId should return the system boot ID", t, func() {
+		bootID := readBootID()
 
 		So(bootID, ShouldNotEqual, nil)
 		So(bootID, ShouldNotEqual, "")
 	})
 }
 
-func BenchmarkReadHostname(b *testing.B) {
+func TestSystem_readDisk(t *testing.T) {
+	Convey("readDisk should return stats about /tmp", t, func() {
+		d := readDisk()
+
+		So(d.totalMiB, ShouldNotBeNil)
+		So(d.usedMiB, ShouldNotBeNil)
+		So(d.usedPercentage, ShouldNotBeNil)
+	})
+}
+
+func benchmarkReadHostname(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		ReadHostname()
+		readHostname()
 	}
 }
 
-func TestSystem_ReadHostname(t *testing.T) {
-	Convey("ReadHostname should return the system hostname", t, func() {
-		hostname := ReadHostname()
+func TestSystem_readHostname(t *testing.T) {
+	Convey("readHostname should return the system hostname", t, func() {
+		hostname := readHostname()
 
 		So(hostname, ShouldNotEqual, nil)
 		So(hostname, ShouldNotEqual, "")

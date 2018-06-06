@@ -9,13 +9,13 @@ import (
 
 var (
 	// BootID is the kernel's boot_id
-	BootID = ReadBootID()
+	BootID = readBootID()
 
 	// ColdStart is true if this is a cold start
 	ColdStart = true
 
 	// Hostname is the system's hostname
-	Hostname = ReadHostname()
+	Hostname = readHostname()
 
 	// LoadTime is the unix time the module was loaded
 	LoadTime = int(time.Now().UnixNano() / 1e6)
