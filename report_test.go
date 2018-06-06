@@ -56,6 +56,11 @@ const emptyReport = `
 	  "usedMiB": {{.Disk.UsedMiB}},
 	  "usedPercentage": {{.Disk.UsedPercentage}}
   },
+  "memory": {
+	  "rssMiB": {{.Memory.UsedMiB}},
+	  "totalMiB": {{.Memory.TotalMiB}},
+	  "rssTotalPercentage": {{.Memory.UsedPercentage}}
+  },
   "environment": {
     "agent": {
       "runtime": "go",
@@ -66,7 +71,10 @@ const emptyReport = `
 		"boot_id": "{{.Environment.Host.BootID}}"
 	},
 	"os": {
-		"hostname": "{{.Environment.OS.Hostname}}"
+		"hostname": "{{.Environment.OS.Hostname}}",
+		"totalmem": {{.Environment.OS.TotalMem}},
+		"freemem": {{.Environment.OS.FreeMem}},
+		"usedmem": {{.Environment.OS.UsedMem}}
 	},
     "runtime": {
       "name": "go",

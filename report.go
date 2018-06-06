@@ -23,6 +23,7 @@ type Report struct {
 	TimestampEnd  int                `json:"timestampEnd"`
 	AWS           *ReportAWS         `json:"aws"`
 	Disk          *ReportDisk        `json:"disk"`
+	Memory        *ReportMemory      `json:"memory"`
 	Environment   *ReportEnvironment `json:"environment"`
 	ColdStart     bool               `json:"coldstart"`
 	Errors        interface{}        `json:"errors"`
@@ -74,13 +75,23 @@ type ReportEnvironmentHost struct {
 
 // ReportEnvironmentOS contains operating system information
 type ReportEnvironmentOS struct {
+	FreeMem  uint64 `json:"freemem"`
 	Hostname string `json:"hostname"`
+	TotalMem uint64 `json:"totalmem"`
+	UsedMem  uint64 `json:"usedmem"`
 }
 
 // ReportEnvironmentRuntime contains runtime information
 type ReportEnvironmentRuntime struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
+}
+
+// ReportMemory contains memory usage information
+type ReportMemory struct {
+	TotalMiB       float64 `json:"totalMiB"`
+	UsedMiB        float64 `json:"rssMiB"`
+	UsedPercentage float64 `json:"rssTotalPercentage"`
 }
 
 // Reporter is the reporter interface
@@ -180,6 +191,16 @@ func (r *Report) prepare(err error) {
 		TotalMiB:       disk.totalMiB,
 		UsedMiB:        disk.usedMiB,
 		UsedPercentage: disk.usedPercentage,
+	}
+
+	mem := readMemInfo()
+	r.Environment.OS.FreeMem = mem.free
+	r.Environment.OS.TotalMem = mem.total
+	r.Environment.OS.UsedMem = mem.used
+	r.Memory = &ReportMemory{
+		TotalMiB:       mem.totalMiB,
+		UsedMiB:        mem.usedMiB,
+		UsedPercentage: mem.usedPercentage,
 	}
 }
 

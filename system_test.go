@@ -45,3 +45,17 @@ func TestSystem_readHostname(t *testing.T) {
 		So(hostname, ShouldNotEqual, "")
 	})
 }
+
+func TestSystem_readMemInfo(t *testing.T) {
+	Convey("readMemInfo should return memory stats", t, func() {
+		m := readMemInfo()
+
+		So(m.available, ShouldNotBeNil)
+		So(m.free, ShouldNotBeNil)
+		So(m.total, ShouldNotBeNil)
+		So(m.totalMiB, ShouldNotBeNil)
+		So(m.used, ShouldNotBeNil)
+		So(m.usedMiB, ShouldNotBeNil)
+		So(m.usedPercentage, ShouldNotBeNil)
+	})
+}

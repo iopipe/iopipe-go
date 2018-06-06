@@ -5,10 +5,21 @@ import (
 
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
 )
 
 type diskInfo struct {
 	totalMiB       float64
+	usedMiB        float64
+	usedPercentage float64
+}
+
+type memInfo struct {
+	available      uint64
+	free           uint64
+	total          uint64
+	totalMiB       float64
+	used           uint64
 	usedMiB        float64
 	usedPercentage float64
 }
@@ -34,4 +45,18 @@ func readDisk() *diskInfo {
 func readHostname() string {
 	hostname, _ := os.Hostname()
 	return hostname
+}
+
+// readMemInfo returns memory usage stats
+func readMemInfo() *memInfo {
+	stat, _ := mem.VirtualMemory()
+	return &memInfo{
+		available:      stat.Available,
+		free:           stat.Free,
+		total:          stat.Total,
+		totalMiB:       float64(stat.Total) / float64(1<<20),
+		used:           stat.Used,
+		usedMiB:        float64(stat.Used) / float64(1<<20),
+		usedPercentage: stat.UsedPercent,
+	}
 }
