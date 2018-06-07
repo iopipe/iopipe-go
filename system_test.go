@@ -3,6 +3,7 @@ package iopipe
 import (
 	"testing"
 
+	"github.com/shirou/gopsutil/cpu"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -68,5 +69,32 @@ func TestSystem_readPIDStat(t *testing.T) {
 		So(p.cutime, ShouldNotBeNil)
 		So(p.stime, ShouldNotBeNil)
 		So(p.utime, ShouldNotBeNil)
+	})
+}
+
+func TestSystem_readPIDStatus(t *testing.T) {
+	Convey("readPIDStatus should reutrn fd, thread count and rss", t, func() {
+		p := readPIDStatus()
+
+		So(p.fdSize, ShouldNotBeNil)
+		So(p.threads, ShouldNotBeNil)
+		So(p.vmRss, ShouldNotBeNil)
+	})
+}
+
+func TestSystem_readSystemStat(t *testing.T) {
+	Convey("readSystemStat should read return system cpu times", t, func() {
+		s := readSystemStat()
+
+		c, _ := cpu.Counts(false)
+		So(len(s), ShouldEqual, c)
+
+		for _, t := range s {
+			So(t.idle, ShouldNotBeNil)
+			So(t.irq, ShouldNotBeNil)
+			So(t.nice, ShouldNotBeNil)
+			So(t.sys, ShouldNotBeNil)
+			So(t.user, ShouldNotBeNil)
+		}
 	})
 }

@@ -78,7 +78,22 @@ type ReportEnvironmentOS struct {
 	Hostname string                    `json:"hostname"`
 	TotalMem uint64                    `json:"totalmem"`
 	UsedMem  uint64                    `json:"usedmem"`
+	CPUs     []ReportEnvironmentOSCPU  `json:"cpus"`
 	Linux    *ReportEnvironmentOSLinux `json:"linux"`
+}
+
+// ReportEnvironmentOSCPU contains cpu information
+type ReportEnvironmentOSCPU struct {
+	Times ReportEnvironmentOSCPUTimes `json:"times"`
+}
+
+// ReportEnvironmentOSCPUTimes contains cpu times
+type ReportEnvironmentOSCPUTimes struct {
+	Idle uint64 `json:"idle"`
+	Irq  uint64 `json:"irq"`
+	Nice uint64 `json:"nice"`
+	Sys  uint64 `json:"sys"`
+	User uint64 `json:"user"`
 }
 
 // ReportEnvironmentOSLinux contains linux system information
@@ -93,8 +108,9 @@ type ReportEnvironmentOSLinuxPID struct {
 
 // ReportEnvironmentOSLinuxPIDSelf contains current process information
 type ReportEnvironmentOSLinuxPIDSelf struct {
-	Stat      *ReportEnvironmentOSLinuxPIDSelfStat `json:"stat"`
-	StatStart *ReportEnvironmentOSLinuxPIDSelfStat `json:"stat_start"`
+	Stat      *ReportEnvironmentOSLinuxPIDSelfStat   `json:"stat"`
+	StatStart *ReportEnvironmentOSLinuxPIDSelfStat   `json:"stat_start"`
+	Status    *ReportEnvironmentOSLinuxPIDSelfStatus `json:"status"`
 }
 
 // ReportEnvironmentOSLinuxPIDSelfStat contains process stats
@@ -103,6 +119,13 @@ type ReportEnvironmentOSLinuxPIDSelfStat struct {
 	Cutime uint64 `json:"cutime"`
 	Stime  uint64 `json:"stime"`
 	Utime  uint64 `json:"utime"`
+}
+
+// ReportEnvironmentOSLinuxPIDSelfStatus contains process status
+type ReportEnvironmentOSLinuxPIDSelfStatus struct {
+	FDSize  int32  `json:"FDSize"`
+	Threads int32  `json:"Threads"`
+	VMRSS   uint64 `json:"VmRSS"`
 }
 
 // ReportEnvironmentRuntime contains runtime information
@@ -216,6 +239,13 @@ func (r *Report) prepare(err error) {
 	r.Environment.OS.Linux.PID.Self.Stat.Stime = statEnd.stime
 	r.Environment.OS.Linux.PID.Self.Stat.Utime = statEnd.utime
 
+	status := readPIDStatus()
+	r.Environment.OS.Linux.PID.Self.Status = &ReportEnvironmentOSLinuxPIDSelfStatus{
+		FDSize:  status.fdSize,
+		Threads: status.threads,
+		VMRSS:   status.vmRss,
+	}
+
 	if err != nil {
 		r.Errors = coerceInvocationError(err)
 	}
@@ -223,6 +253,19 @@ func (r *Report) prepare(err error) {
 	for label := range r.labels {
 		r.Labels = append(r.Labels, label)
 	}
+
+	cpus := readSystemStat()
+	cpuTimes := make([]ReportEnvironmentOSCPU, len(cpus))
+	for index, cpu := range cpus {
+		cpuTimes[index].Times = ReportEnvironmentOSCPUTimes{
+			Idle: cpu.idle,
+			Irq:  cpu.irq,
+			Nice: cpu.nice,
+			Sys:  cpu.sys,
+			User: cpu.user,
+		}
+	}
+	r.Environment.OS.CPUs = cpuTimes
 
 	disk := readDisk()
 	r.Disk = &ReportDisk{

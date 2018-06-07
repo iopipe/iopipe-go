@@ -3,6 +3,7 @@ package iopipe
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"testing"
 	"text/template"
@@ -29,6 +30,8 @@ func TestReport_NewReport(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(actualReportJSON, ShouldNotBeNil)
+
+			fmt.Println("Actual Report JSON:", actualReportJSON)
 
 			var expectedReportJSON interface{}
 			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, r)), &expectedReportJSON)
@@ -76,6 +79,19 @@ const emptyReport = `
 		"totalmem": {{.Environment.OS.TotalMem}},
 		"freemem": {{.Environment.OS.FreeMem}},
 		"usedmem": {{.Environment.OS.UsedMem}},
+		"cpus": [
+		{{range $i, $c := .Environment.OS.CPUs}}
+		{{if $i}},{{end}}{
+			"times": {
+				"idle": {{$c.Times.Idle}},
+				"irq": {{$c.Times.Irq}},
+				"nice": {{$c.Times.Nice}},
+				"sys": {{$c.Times.Sys}},
+				"user": {{$c.Times.User}}
+			}
+		}
+		{{end}}
+		],
 		"linux": {
 			"pid": {
 				"self": {
@@ -90,6 +106,11 @@ const emptyReport = `
 						"cutime": {{.Environment.OS.Linux.PID.Self.StatStart.Cutime}},
 						"stime": {{.Environment.OS.Linux.PID.Self.StatStart.Stime}},
 						"utime": {{.Environment.OS.Linux.PID.Self.StatStart.Utime}}
+					},
+					"status": {
+						"FDSize": {{.Environment.OS.Linux.PID.Self.Status.FDSize}},
+						"Threads": {{.Environment.OS.Linux.PID.Self.Status.Threads}},
+						"VmRSS": {{.Environment.OS.Linux.PID.Self.Status.VMRSS}}
 					}
 				}
 			}
