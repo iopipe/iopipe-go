@@ -19,10 +19,16 @@ func TestReport_NewReport(t *testing.T) {
 			r := NewReport(hw)
 			r.prepare(nil)
 
-			reportJSONBytes, _ := json.Marshal(r)
+			reportJSONBytes, err := json.Marshal(r)
+
+			So(reportJSONBytes, ShouldNotBeNil)
+			So(err, ShouldBeNil)
 
 			var actualReportJSON interface{}
-			_ = json.Unmarshal(reportJSONBytes, &actualReportJSON)
+			err = json.Unmarshal(reportJSONBytes, &actualReportJSON)
+
+			So(err, ShouldBeNil)
+			So(actualReportJSON, ShouldNotBeNil)
 
 			var expectedReportJSON interface{}
 			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, r)), &expectedReportJSON)
@@ -69,7 +75,25 @@ const emptyReport = `
 		"hostname": "{{.Environment.OS.Hostname}}",
 		"totalmem": {{.Environment.OS.TotalMem}},
 		"freemem": {{.Environment.OS.FreeMem}},
-		"usedmem": {{.Environment.OS.UsedMem}}
+		"usedmem": {{.Environment.OS.UsedMem}},
+		"linux": {
+			"pid": {
+				"self": {
+					"stat": {
+						"cstime": {{.Environment.OS.Linux.PID.Self.Stat.Cstime}},
+						"cutime": {{.Environment.OS.Linux.PID.Self.Stat.Cutime}},
+						"stime": {{.Environment.OS.Linux.PID.Self.Stat.Stime}},
+						"utime": {{.Environment.OS.Linux.PID.Self.Stat.Utime}}
+					},
+					"stat_start": {
+						"cstime": {{.Environment.OS.Linux.PID.Self.StatStart.Cstime}},
+						"cutime": {{.Environment.OS.Linux.PID.Self.StatStart.Cutime}},
+						"stime": {{.Environment.OS.Linux.PID.Self.StatStart.Stime}},
+						"utime": {{.Environment.OS.Linux.PID.Self.StatStart.Utime}}
+					}
+				}
+			}
+		}
 	},
     "runtime": {
       "name": "go",

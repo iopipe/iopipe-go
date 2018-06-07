@@ -93,7 +93,6 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	return response, err
 }
 
-// Label adds a label to the report
 // Error adds an  error to the report
 func (hw *HandlerWrapper) Error(err error) {
 	if hw.report == nil {
@@ -107,6 +106,7 @@ func (hw *HandlerWrapper) Error(err error) {
 	}
 }
 
+// Label adds a label to the report
 func (hw *HandlerWrapper) Label(name string) {
 	if hw.report == nil {
 		fmt.Println("Attempting to add labels before function decorated with IOpipe. This metric will not be recorded.")

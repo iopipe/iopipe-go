@@ -74,10 +74,35 @@ type ReportEnvironmentHost struct {
 
 // ReportEnvironmentOS contains operating system information
 type ReportEnvironmentOS struct {
-	FreeMem  uint64 `json:"freemem"`
-	Hostname string `json:"hostname"`
-	TotalMem uint64 `json:"totalmem"`
-	UsedMem  uint64 `json:"usedmem"`
+	FreeMem  uint64                    `json:"freemem"`
+	Hostname string                    `json:"hostname"`
+	TotalMem uint64                    `json:"totalmem"`
+	UsedMem  uint64                    `json:"usedmem"`
+	Linux    *ReportEnvironmentOSLinux `json:"linux"`
+}
+
+// ReportEnvironmentOSLinux contains linux system information
+type ReportEnvironmentOSLinux struct {
+	PID *ReportEnvironmentOSLinuxPID `json:"pid"`
+}
+
+// ReportEnvironmentOSLinuxPID contains linux process information
+type ReportEnvironmentOSLinuxPID struct {
+	Self *ReportEnvironmentOSLinuxPIDSelf `json:"self"`
+}
+
+// ReportEnvironmentOSLinuxPIDSelf contains current process information
+type ReportEnvironmentOSLinuxPIDSelf struct {
+	Stat      *ReportEnvironmentOSLinuxPIDSelfStat `json:"stat"`
+	StatStart *ReportEnvironmentOSLinuxPIDSelfStat `json:"stat_start"`
+}
+
+// ReportEnvironmentOSLinuxPIDSelfStat contains process stats
+type ReportEnvironmentOSLinuxPIDSelfStat struct {
+	Cstime uint64 `json:"cstime"`
+	Cutime uint64 `json:"cutime"`
+	Stime  uint64 `json:"stime"`
+	Utime  uint64 `json:"utime"`
 }
 
 // ReportEnvironmentRuntime contains runtime information
@@ -99,6 +124,8 @@ type CustomMetric struct {
 // NewReport instantiates a new IOpipe report
 func NewReport(handler *HandlerWrapper) *Report {
 	startTime := time.Now()
+	statStart := readPIDStat()
+
 	agent := handler.agent
 
 	lc := handler.lambdaContext
@@ -149,6 +176,19 @@ func NewReport(handler *HandlerWrapper) *Report {
 			},
 			OS: &ReportEnvironmentOS{
 				Hostname: Hostname,
+				Linux: &ReportEnvironmentOSLinux{
+					PID: &ReportEnvironmentOSLinuxPID{
+						Self: &ReportEnvironmentOSLinuxPIDSelf{
+							Stat: &ReportEnvironmentOSLinuxPIDSelfStat{},
+							StatStart: &ReportEnvironmentOSLinuxPIDSelfStat{
+								Cstime: statStart.cstime,
+								Cutime: statStart.cutime,
+								Stime:  statStart.stime,
+								Utime:  statStart.utime,
+							},
+						},
+					},
+				},
 			},
 			Runtime: &ReportEnvironmentRuntime{
 				Name:    RUNTIME,
@@ -169,6 +209,12 @@ func (r *Report) prepare(err error) {
 	endTime := time.Now()
 	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
 	r.Duration = int(endTime.Sub(r.startTime).Nanoseconds())
+
+	statEnd := readPIDStat()
+	r.Environment.OS.Linux.PID.Self.Stat.Cstime = statEnd.cstime
+	r.Environment.OS.Linux.PID.Self.Stat.Cutime = statEnd.cutime
+	r.Environment.OS.Linux.PID.Self.Stat.Stime = statEnd.stime
+	r.Environment.OS.Linux.PID.Self.Stat.Utime = statEnd.utime
 
 	if err != nil {
 		r.Errors = coerceInvocationError(err)

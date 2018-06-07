@@ -59,3 +59,14 @@ func TestSystem_readMemInfo(t *testing.T) {
 		So(m.usedPercentage, ShouldNotBeNil)
 	})
 }
+
+func TestSystem_readPIDStat(t *testing.T) {
+	Convey("readPIDStat should return process cpu times", t, func() {
+		p := readPIDStat()
+
+		So(p.cstime, ShouldNotBeNil)
+		So(p.cutime, ShouldNotBeNil)
+		So(p.stime, ShouldNotBeNil)
+		So(p.utime, ShouldNotBeNil)
+	})
+}
