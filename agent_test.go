@@ -2,6 +2,7 @@ package iopipe
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -12,19 +13,23 @@ func TestAgent_NewAgent(t *testing.T) {
 	Convey("An agent created with empty Config should have default configuration", t, func() {
 		agentWithDefaultConfig := NewAgent(Config{})
 
-		Convey("Agent should be enabled", func() {
+		Convey("Agent should disable debug mode by default", func() {
+			So(*agentWithDefaultConfig.Debug, ShouldBeFalse)
+		})
+
+		Convey("Agent should be enabled by default", func() {
 			So(*agentWithDefaultConfig.Enabled, ShouldBeTrue)
 		})
 
-		Convey("Plugins should be empty", func() {
+		Convey("Plugins should be empty by default", func() {
 			So(agentWithDefaultConfig.plugins, ShouldBeEmpty)
 		})
 
-		Convey("TimeoutWindow should be 150 ms", func() {
+		Convey("TimeoutWindow should be 150 ms by default", func() {
 			So(*agentWithDefaultConfig.TimeoutWindow, ShouldEqual, 150*time.Millisecond)
 		})
 
-		Convey("Token should be empty", func() {
+		Convey("Token should be empty by default", func() {
 			So(*agentWithDefaultConfig.Token, ShouldBeEmpty)
 		})
 	})
@@ -63,6 +68,67 @@ func TestAgent_NewAgent(t *testing.T) {
 				So(agentWithCustomConfig.plugins, ShouldBeEmpty)
 			})
 		}
+	})
+
+	Convey("An agent should check environment variables for configuration", t, func() {
+		Convey("IOPIPE_DEBUG should enable debug mode", func() {
+			oldValue := os.Getenv("IOPIPE_DEBUG")
+			os.Setenv("IOPIPE_DEBUG", "true")
+
+			a := NewAgent(Config{})
+			So(*a.Debug, ShouldBeTrue)
+
+			os.Setenv("IOPIPE_DEBUG", oldValue)
+		})
+
+		Convey("IOPIPE_ENABLED should disable agent", func() {
+			oldValue := os.Getenv("IOPIPE_ENABLED")
+			os.Setenv("IOPIPE_DEBUG", "false")
+
+			a := NewAgent(Config{})
+			So(*a.Debug, ShouldBeFalse)
+
+			os.Setenv("IOPIPE_DEBUG", oldValue)
+		})
+
+		Convey("IOPIPE_TIMEOUT_WINDOW should set the timeout window", func() {
+			oldValue := os.Getenv("IOPIPE_TIMEOUT_WINDOW")
+			os.Setenv("IOPIPE_TIMEOUT_WINDOW", "300")
+
+			a := NewAgent(Config{})
+			So(*a.TimeoutWindow, ShouldEqual, time.Duration(300*time.Millisecond))
+
+			os.Setenv("IOPIPE_DEBUG", oldValue)
+		})
+	})
+
+	Convey("An agent with plugins should initialize them", t, func() {
+		agentWithPlugin := NewAgent(Config{
+			PluginInstantiators: []PluginInstantiator{
+				TestPlugin(TestPluginConfig{}),
+			},
+		})
+
+		Convey("Should only have one plugin", func() {
+			So(len(agentWithPlugin.plugins), ShouldEqual, 1)
+		})
+
+		plugin, _ := agentWithPlugin.plugins[0].(*testPlugin)
+
+		Convey("Pre setup hooks should be called once", func() {
+			So(plugin.preSetupCalled, ShouldEqual, 1)
+		})
+
+		Convey("Post setup hooks should be called once", func() {
+			So(plugin.postSetupCalled, ShouldEqual, 1)
+		})
+
+		Convey("No other rhooks should be called", func() {
+			So(plugin.preInvokeCalled, ShouldEqual, 0)
+			So(plugin.postInvokeCalled, ShouldEqual, 0)
+			So(plugin.preReportCalled, ShouldEqual, 0)
+			So(plugin.postReportCalled, ShouldEqual, 0)
+		})
 	})
 }
 

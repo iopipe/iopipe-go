@@ -46,3 +46,21 @@ func coerceString(x interface{}) interface{} {
 func getFuncName(f interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 }
+
+func newFalse() *bool {
+	b := false
+	return &b
+}
+
+func newTrue() *bool {
+	b := true
+	return &b
+}
+
+func strToBool(s string) *bool {
+	if s == "true" || s == "1" {
+		return newTrue()
+	}
+
+	return newFalse()
+}

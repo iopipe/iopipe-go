@@ -2,9 +2,14 @@ package iopipe
 
 import "context"
 
-// TestPluginConfig is a test plugin config
 type TestPluginConfig struct {
-	LastHook string
+	lastHook         string
+	preSetupCalled   int
+	postSetupCalled  int
+	preInvokeCalled  int
+	postInvokeCalled int
+	preReportCalled  int
+	postReportCalled int
 }
 
 type testPlugin struct {
@@ -36,14 +41,31 @@ func (p *testPlugin) Enabled() bool {
 	return true
 }
 
-func (p *testPlugin) PreSetup(agent *Agent)                               {}
-func (p *testPlugin) PostSetup(agent *Agent)                              {}
-func (p *testPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
-func (p *testPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
-func (p *testPlugin) PreReport(report *Report)                            {}
-func (p *testPlugin) PostReport(report *Report)                           {}
+func (p *testPlugin) PreSetup(agent *Agent) {
+	p.preSetupCalled++
+}
 
-// TestPlugin return a test plugin
+func (p *testPlugin) PostSetup(agent *Agent) {
+	p.postSetupCalled++
+}
+
+func (p *testPlugin) PreInvoke(ctx context.Context, payload interface{}) {
+	p.preInvokeCalled++
+}
+
+func (p *testPlugin) PostInvoke(ctx context.Context, payload interface{}) {
+	p.postInvokeCalled++
+}
+
+func (p *testPlugin) PreReport(report *Report) {
+	p.preReportCalled++
+}
+
+func (p *testPlugin) PostReport(report *Report) {
+	p.postReportCalled++
+}
+
+// TestPlugin returns a test plugin
 func TestPlugin(config TestPluginConfig) PluginInstantiator {
 	return func() Plugin {
 		return &testPlugin{config}

@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 )
 
 // Config is the config object passed to agent initialization
 type Config struct {
+	Debug               *bool
 	Enabled             *bool
 	PluginInstantiators []PluginInstantiator
 	Reporter            Reporter
@@ -24,6 +26,7 @@ type Agent struct {
 }
 
 var (
+	defaultConfigDebug         = false
 	defaultConfigEnabled       = true
 	defaultConfigTimeoutWindow = time.Duration(150 * time.Millisecond)
 	defaultReporter            = sendReport
@@ -50,8 +53,20 @@ func NewAgent(config Config) *Agent {
 	}
 
 	a.preSetup()
+	debug := &defaultConfigDebug
+	envDebug := os.Getenv("IOPIPE_DEBUG")
+	if envDebug != "" {
+		debug = strToBool(envDebug)
+	}
+	if config.Debug != nil {
+		debug = config.Debug
+	}
 
 	enabled := &defaultConfigEnabled
+	envEnabled := os.Getenv("IOPIPE_ENABLED")
+	if envEnabled != "" {
+		enabled = strToBool(envEnabled)
+	}
 	if config.Enabled != nil {
 		enabled = config.Enabled
 	}
@@ -62,17 +77,24 @@ func NewAgent(config Config) *Agent {
 	}
 
 	timeoutWindow := &defaultConfigTimeoutWindow
+	envTimeoutWindow := os.Getenv("IOPIPE_TIMEOUT_WINDOW")
+	envTimeoutWindowInt, err := strconv.Atoi(envTimeoutWindow)
+	if err == nil {
+		envTimeoutWindowDuration := time.Duration(time.Duration(envTimeoutWindowInt) * time.Millisecond)
+		timeoutWindow = &envTimeoutWindowDuration
+	}
 	if config.TimeoutWindow != nil {
 		timeoutWindow = config.TimeoutWindow
 	}
 
-	envtoken := os.Getenv("IOPIPE_TOKEN")
-	token := &envtoken
+	envToken := os.Getenv("IOPIPE_TOKEN")
+	token := &envToken
 	if config.Token != nil {
 		token = config.Token
 	}
 
 	a.Config = &Config{
+		Debug:               debug,
 		Enabled:             enabled,
 		PluginInstantiators: pluginInstantiators,
 		Reporter:            reporter,
