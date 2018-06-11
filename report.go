@@ -12,7 +12,7 @@ import (
 // Report contains an IOpipe report
 type Report struct {
 	agent     *Agent
-	sending   bool
+	sent      bool
 	startTime time.Time
 
 	ClientID      string             `json:"client_id"`
@@ -170,7 +170,7 @@ func NewReport(handler *HandlerWrapper) *Report {
 
 	return &Report{
 		agent:     agent,
-		sending:   false,
+		sent:      false,
 		startTime: startTime,
 
 		ClientID:      token,
@@ -281,11 +281,11 @@ func (r *Report) prepare(err error) {
 }
 
 func (r *Report) send() {
-	if r.sending {
+	if r.sent {
 		return
 	}
 
-	r.sending = true
+	r.sent = true
 
 	r.preReport()
 

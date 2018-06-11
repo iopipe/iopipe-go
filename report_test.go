@@ -3,7 +3,6 @@ package iopipe
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"testing"
 	"text/template"
@@ -30,8 +29,6 @@ func TestReport_NewReport(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(actualReportJSON, ShouldNotBeNil)
-
-			fmt.Println("Actual Report JSON:", actualReportJSON)
 
 			var expectedReportJSON interface{}
 			_ = json.Unmarshal([]byte(executeTemplateString(emptyReport, r)), &expectedReportJSON)
@@ -121,7 +118,7 @@ const emptyReport = `
       "version": "{{.Environment.Runtime.Version}}"
     }
   },
-  "coldstart": true,
+  "coldstart": false,
   "custom_metrics": [],
   "labels": [],
   "errors": {},

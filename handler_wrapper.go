@@ -46,7 +46,8 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
 			hw.postInvoke(ctx, payload)
-			hw.Error(NewPanicInvocationError(panicErr))
+			hw.report.prepare(NewPanicInvocationError(panicErr))
+			hw.report.send()
 			panic(panicErr)
 		}
 	}()
@@ -70,9 +71,10 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 		case <-timeoutChannel:
 			fmt.Println("Function is about to timeout, sending report")
 			hw.postInvoke(ctx, payload)
-			hw.Error(fmt.Errorf("timeout exceeded"))
+			hw.report.prepare(fmt.Errorf("timeout exceeded"))
+			hw.report.send()
 		case <-ctx.Done():
-			if hw.report != nil && !hw.report.sending {
+			if hw.report != nil && !hw.report.sent {
 				hw.postInvoke(ctx, payload)
 				hw.report.prepare(nil)
 				hw.report.send()
@@ -84,7 +86,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	ColdStart = false
 
-	if hw.report != nil && !hw.report.sending {
+	if hw.report != nil && !hw.report.sent {
 		hw.postInvoke(ctx, payload)
 		hw.report.prepare(err)
 		hw.report.send()
@@ -100,7 +102,7 @@ func (hw *HandlerWrapper) Error(err error) {
 		return
 	}
 
-	if !hw.report.sending {
+	if !hw.report.sent {
 		hw.report.prepare(err)
 		hw.report.send()
 	}

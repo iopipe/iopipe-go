@@ -2,6 +2,7 @@ package iopipe
 
 import "context"
 
+// TestPluginConfig is a test plugin config
 type TestPluginConfig struct {
 	lastHook         string
 	preSetupCalled   int
