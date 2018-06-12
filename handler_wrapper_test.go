@@ -170,8 +170,6 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			// deadline is 100ms from now
 			// timeWindow is 60ms
 			// report sent with timeout exceeded error
-			t.Skip()
-
 			var actualMessage string
 
 			timeOutWindow := 60 * time.Millisecond
@@ -187,7 +185,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 
 			hw.Invoke(expectedContext, expectedPayload)
 
-			So(actualMessage, ShouldEqual, "timeout exceeded")
+			So(actualMessage, ShouldEqual, "Timeout Exceeded")
 		})
 
 		Convey("Unset deadline results no timeout regardless of timeOutWindow", func() {
@@ -201,11 +199,13 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 
 			hw.wrappedHandler = wrapperHandlerThatSleeps
 			hw.deadline = time.Time{}
+
 			a.TimeoutWindow = &timeOutWindow
 			a.Reporter = func(report *Report) error {
 				reporterCalled = true
 				return nil
 			}
+
 			hw.Invoke(expectedContext, expectedPayload)
 
 			time.Sleep(50 * time.Millisecond)

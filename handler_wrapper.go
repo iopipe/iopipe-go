@@ -31,7 +31,6 @@ func NewHandlerWrapper(handler interface{}, agent *Agent) *HandlerWrapper {
 
 // Invoke invokes the wrapped handler, handling panics and timeouts
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
-	hw.deadline, _ = ctx.Deadline()
 	hw.report = NewReport(hw)
 
 	lc, _ := lambdacontext.FromContext(ctx)
@@ -39,13 +38,13 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	cw := NewContextWrapper(lc, hw)
 	ctx = NewContext(ctx, cw)
+	hw.deadline, _ = ctx.Deadline()
 
 	hw.preInvoke(ctx, payload)
 
 	// Handle and report a panic if it occurs
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
-			hw.postInvoke(ctx, payload)
 			hw.report.prepare(NewPanicInvocationError(panicErr))
 			hw.report.send()
 			panic(panicErr)
@@ -60,25 +59,24 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 			timeoutWindow = *hw.agent.TimeoutWindow
 		}
 
-		if hw.deadline.IsZero() {
+		timeoutDuration := hw.deadline.Add(-timeoutWindow)
+		if timeoutDuration.IsZero() {
+			fmt.Println("Disabling timeout handling")
 			return
 		}
 
-		timeoutChannel := time.After(time.Until(hw.deadline.Add(-timeoutWindow)))
+		fmt.Println("Settting timeout to", timeoutDuration.String())
+		timeoutChannel := time.After(time.Until(timeoutDuration))
 
 		select {
-		// We have timed out
+		// We're within the timeout window
 		case <-timeoutChannel:
 			fmt.Println("Function is about to timeout, sending report")
-			hw.postInvoke(ctx, payload)
-			hw.report.prepare(fmt.Errorf("timeout exceeded"))
+			hw.report.prepare(fmt.Errorf("Timeout Exceeded"))
 			hw.report.send()
+			return
 		case <-ctx.Done():
-			if hw.report != nil && !hw.report.sent {
-				hw.postInvoke(ctx, payload)
-				hw.report.prepare(nil)
-				hw.report.send()
-			}
+			return
 		}
 	}()
 
@@ -86,8 +84,9 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	ColdStart = false
 
-	if hw.report != nil && !hw.report.sent {
-		hw.postInvoke(ctx, payload)
+	hw.postInvoke(ctx, payload)
+
+	if hw.report != nil {
 		hw.report.prepare(err)
 		hw.report.send()
 	}
