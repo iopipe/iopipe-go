@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -88,11 +89,13 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			So(plugin.postInvokeCalled, ShouldEqual, 1)
 		})
 
-		Convey("Passes arguments unchanged to wrappedHandler", func() {
+		Convey("Passes context and payload to wrappedHandler", func() {
 			hw.Invoke(expectedContext, expectedPayload)
+			lc, _ := lambdacontext.FromContext(expectedContext)
+			cw := NewContextWrapper(lc, hw)
+			iopipeContext := NewContext(expectedContext, cw)
 
-			// FIXME: IOpipe adds a value to the context
-			//So(receivedContext, ShouldResemble, expectedContext)
+			So(receivedContext, ShouldResemble, iopipeContext)
 			So(receivedPayload, ShouldEqual, expectedPayload)
 		})
 
