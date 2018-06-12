@@ -13,8 +13,6 @@ func testFunctionThatPanics() {
 }
 
 func TestNewPanicInvocationError(t *testing.T) {
-
-	// Only pass t into top-level Convey calls
 	Convey("Given a parent function that recovers from panics, stores the error using NewPanicInvocationError, and wraps a panicking child function", t, func() {
 		var panicErr *InvocationError
 
@@ -54,6 +52,7 @@ func assertPanicMessage(t *testing.T, panicFunc func(), expectedMessage string) 
 	defer func() {
 		if err := recover(); err != nil {
 			panicInfo := getPanicInfo(err, 0)
+
 			So(panicInfo, ShouldNotBeNil)
 			So(panicInfo.Message, ShouldNotBeNil)
 			So(panicInfo.Message, ShouldEqual, expectedMessage)

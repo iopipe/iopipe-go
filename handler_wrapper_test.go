@@ -27,6 +27,29 @@ func TestHandlerWrapper_NewHandlerWrapper(t *testing.T) {
 	})
 }
 
+func TestHandlerWrapper_Error(t *testing.T) {
+	Convey("A handler wrapper allows errors to be added to a report", t, func() {
+		a := NewAgent(Config{})
+		hw := &HandlerWrapper{agent: a}
+
+		Convey("Doesnot panic if there is no report", func() {
+			So(hw.report, ShouldBeNil)
+			So(func() {
+				hw.Error(fmt.Errorf("whoops"))
+			}, ShouldNotPanic)
+		})
+
+		Convey("Add an error to the report", func() {
+			r := NewReport(hw)
+			hw.report = r
+
+			So(r.Errors, ShouldResemble, &struct{}{})
+			hw.Error(fmt.Errorf("Whoops"))
+			So(r.Errors, ShouldHaveSameTypeAs, &InvocationError{})
+		})
+	})
+}
+
 func TestHandlerWrapper_Invoke(t *testing.T) {
 	Convey("Given a wrapped function", t, func() {
 		var (
@@ -275,12 +298,21 @@ func TestHandlerWrapper_Metric(t *testing.T) {
 			}, ShouldNotPanic)
 		})
 
-		Convey("Add a custom metric to the report", func() {
+		Convey("Add a custom string metric to the report", func() {
 			r := NewReport(hw)
 			hw.report = r
 
 			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
 			hw.Metric("foo", "bar")
+			So(len(hw.report.CustomMetrics), ShouldEqual, 1)
+		})
+
+		Convey("Add a custom numeric metric to the report", func() {
+			r := NewReport(hw)
+			hw.report = r
+
+			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
+			hw.Metric("meaning of life", 42)
 			So(len(hw.report.CustomMetrics), ShouldEqual, 1)
 		})
 
@@ -290,6 +322,15 @@ func TestHandlerWrapper_Metric(t *testing.T) {
 
 			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
 			hw.Metric(strings.Repeat("X", 129), "bar")
+			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
+		})
+
+		Convey("Does not add metric if value is not string or number", func() {
+			r := NewReport(hw)
+			hw.report = r
+
+			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
+			hw.Metric("foo", true)
 			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
 		})
 	})

@@ -109,10 +109,8 @@ func (hw *HandlerWrapper) Error(err error) {
 		return
 	}
 
-	if !hw.report.sent {
-		hw.report.prepare(err)
-		hw.report.send()
-	}
+	hw.report.prepare(err)
+	hw.report.send()
 }
 
 // Label adds a label to the report

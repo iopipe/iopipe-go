@@ -8,11 +8,30 @@ import (
 
 func TestUtil_coerceNumeric(t *testing.T) {
 	Convey("Numeric values should be coerced to their type or nil", t, func() {
-		So(coerceNumeric("not a number"), ShouldBeNil)
-		So(coerceNumeric(true), ShouldBeNil)
+		Convey("Strings are not numeric", func() {
+			So(coerceNumeric("not a number"), ShouldBeNil)
+		})
 
-		So(coerceNumeric(123), ShouldEqual, 123)
-		So(coerceNumeric(123.456), ShouldEqual, 123.456)
+		Convey("Booleans are not numeric", func() {
+			So(coerceNumeric(true), ShouldBeNil)
+		})
+
+		Convey("Integers should be coerced to int64", func() {
+			So(coerceNumeric(int(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(int8(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(uint8(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(int16(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(uint16(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(int32(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(uint32(123)), ShouldEqual, int32(123))
+			So(coerceNumeric(int64(123)), ShouldEqual, int64(123))
+			So(coerceNumeric(uint64(123)), ShouldEqual, int64(123))
+		})
+
+		Convey("Floats should be coerced to floats", func() {
+			So(coerceNumeric(float32(123.456)), ShouldEqual, float32(123.456))
+			So(coerceNumeric(float64(123.456)), ShouldEqual, float64(123.456))
+		})
 	})
 }
 
