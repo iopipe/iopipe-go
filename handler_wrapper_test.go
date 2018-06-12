@@ -133,13 +133,15 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			// wrapperHandlerThatSleeps succeeds
 			var reporterCalled bool
 
-			hw.deadline = time.Now().Add(100 * time.Millisecond)
+			deadlineContext, deadlineCancel := context.WithDeadline(expectedContext, time.Now().Add(100*time.Millisecond))
+			defer deadlineCancel()
 			hw.wrappedHandler = wrapperHandlerThatSleeps
 			a.Reporter = func(report *Report) error {
 				reporterCalled = true
 				return nil
 			}
-			hw.Invoke(expectedContext, expectedPayload)
+
+			hw.Invoke(deadlineContext, expectedPayload)
 
 			So(reporterCalled, ShouldBeTrue)
 		})
@@ -152,13 +154,15 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			// sleep for 60ms more
 			var reporterCalled bool
 
-			hw.deadline = time.Now().Add(100 * time.Millisecond)
+			deadlineContext, deadlineCancel := context.WithDeadline(expectedContext, time.Now().Add(100*time.Millisecond))
+			defer deadlineCancel()
 			hw.wrappedHandler = wrapperHandlerThatSleeps
 			a.Reporter = func(report *Report) error {
 				reporterCalled = true
 				return nil
 			}
-			hw.Invoke(expectedContext, expectedPayload)
+
+			hw.Invoke(deadlineContext, expectedPayload)
 
 			time.Sleep(60 * time.Millisecond)
 
@@ -174,7 +178,8 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 
 			timeOutWindow := 60 * time.Millisecond
 
-			hw.deadline = time.Now().Add(100 * time.Millisecond)
+			deadlineContext, deadlineCancel := context.WithDeadline(expectedContext, time.Now().Add(100*time.Millisecond))
+			defer deadlineCancel()
 			hw.wrappedHandler = wrapperHandlerThatSleeps
 
 			a.TimeoutWindow = &timeOutWindow
@@ -183,7 +188,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				return nil
 			}
 
-			hw.Invoke(expectedContext, expectedPayload)
+			hw.Invoke(deadlineContext, expectedPayload)
 
 			So(actualMessage, ShouldEqual, "Timeout Exceeded")
 		})
@@ -192,17 +197,20 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			// wrapperHandlerThatSleeps takes 50ms
 			// no deadline
 			// timeWindow is 2000 ms
-			// no report sent
-			var reporterCalled bool
+			var (
+				reportError    interface{}
+				reporterCalled bool
+			)
 
 			timeOutWindow := 2000 * time.Millisecond
 
 			hw.wrappedHandler = wrapperHandlerThatSleeps
-			hw.deadline = time.Time{}
 
 			a.TimeoutWindow = &timeOutWindow
 			a.Reporter = func(report *Report) error {
+				reportError = report.Errors
 				reporterCalled = true
+
 				return nil
 			}
 
@@ -211,6 +219,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 
 			So(reporterCalled, ShouldBeTrue)
+			So(reportError, ShouldResemble, &struct{}{})
 		})
 	})
 }

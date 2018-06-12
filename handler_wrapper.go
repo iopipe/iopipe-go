@@ -53,6 +53,11 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	// Start the timeout clock and handle timeouts
 	go func() {
+		if hw.deadline.IsZero() {
+			fmt.Println("Deadline is zero, disabling timeout handling")
+			return
+		}
+
 		timeoutWindow := 0 * time.Millisecond
 
 		if hw.agent != nil && hw.agent.TimeoutWindow != nil {
@@ -60,12 +65,15 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 		}
 
 		timeoutDuration := hw.deadline.Add(-timeoutWindow)
-		if timeoutDuration.IsZero() {
-			fmt.Println("Disabling timeout handling")
+
+		// If timeout duration is in the past, disable timeout handling
+		if time.Now().After(timeoutDuration) {
+			fmt.Println("Timeout deadline is in the past, disabling timeout handling")
 			return
 		}
 
-		fmt.Println("Settting timeout to", timeoutDuration.String())
+		fmt.Println("Setting function to timeout in", time.Until(timeoutDuration).String())
+
 		timeoutChannel := time.After(time.Until(timeoutDuration))
 
 		select {
