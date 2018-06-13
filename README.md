@@ -66,13 +66,13 @@ Your IOpipe project token. If not supplied, the environment variable `IOPIPE_TOK
 
 Debug mode will log all data sent to IOpipe servers. This is also a good way to evaluate the sort of data that IOpipe is receiving from your application. If not supplied, the environment variable `IOPIPE_DEBUG` will be used if present.
 
-#### `Enabled` (*bool: optional = true)
-
-Conditionally enable/disable the agent. For example, you will likely want to disabled the agent during development. The environment variable `IOPIPE_ENABLED` will also be checked.
-
 #### `TimeoutWindow` (*time.Duration: optional = 150)
 
 By default, IOpipe will capture timeouts by exiting your function 150 milliseconds early from the AWS configured timeout, to allow time for reporting. You can disable this feature by setting `timeout_window` to `0` in your configuration. If not supplied, the environment variable `IOPIPE_TIMEOUT_WINDOW` will be used if present.
+
+#### `Enabled` (*bool: optional = true)
+
+Conditionally enable/disable the agent. The environment variable `IOPIPE_ENABLED` will also be checked.
 
 ### Contexts
 
