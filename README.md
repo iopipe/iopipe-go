@@ -11,6 +11,7 @@ _WARNING! This library is in an alpha state, use at your own risk!_
   - [Custom Metrics](#custom-metrics)
   - [Labels](#labels)
   - [Reporting Errors](#reporting-errors)
+- [Running Tests](#running-tests)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -216,6 +217,26 @@ func main() {
 It is important to note that a report is sent to IOpipe when `Error()` is called. So you should only record exceptions this way for failure states. For caught exceptions that are not a failure state, it is recommended to use custom metrics.
 
 You also don't need to use `Error()` if the error is being returned as the second return value of the function. IOpipe will add that error to the report for you automatically.
+
+## Running Tests
+
+The tests use [Convey](https://github.com/smartystreets/goconvey/), so make sure that is installed:
+
+```bash
+go get github.com/smartystreets/goconvey
+```
+
+We use `dep` for package dependencies, to installed them:
+
+```bash
+dep ensure
+```
+
+To run the tests:
+
+```bash
+go test -v
+```
 
 ## Contributing
 
