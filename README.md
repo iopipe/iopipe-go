@@ -6,6 +6,7 @@ _WARNING! This library is in an alpha state, use at your own risk!_
 
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Configuration](#configuration)
   - [Contexts](#contexts)
   - [Custom Metrics](#custom-metrics)
   - [Labels](#labels)
@@ -53,7 +54,27 @@ func main() {
 The `iopipe.Config` struct offers further options for configuring how your function interacts with IOpipe, please refer
 to the [godoc](https://godoc.org/github.com/iopipe/iopipe-go#Config)for more information.
 
-## Contexts
+### Configuration
+
+The following may be set via the `iopipe.Config{}` struct passed to the `iopipe.NewAgent()` initializer:
+
+#### `Token` (*string: required)
+
+Your IOpipe project token. If not supplied, the environment variable `IOPIPE_TOKEN` will be used if present. [Find your project token](https://dashboard.iopipe.com/install)
+
+#### `Debug` (*bool: optional = false)
+
+Debug mode will log all data sent to IOpipe servers. This is also a good way to evaluate the sort of data that IOpipe is receiving from your application. If not supplied, the environment variable `IOPIPE_DEBUG` will be used if present.
+
+#### `Enabled` (*bool: optional = true)
+
+Conditionally enable/disable the agent. For example, you will likely want to disabled the agent during development. The environment variable `IOPIPE_ENABLED` will also be checked.
+
+#### `TimeoutWindow` (*time.Duration: optional = 150)
+
+By default, IOpipe will capture timeouts by exiting your function 150 milliseconds early from the AWS configured timeout, to allow time for reporting. You can disable this feature by setting `timeout_window` to `0` in your configuration. If not supplied, the environment variable `IOPIPE_TIMEOUT_WINDOW` will be used if present.
+
+### Contexts
 
 The IOpipe agent wraps the `lambdacontext.LambdaContext`. So instead of doing this:
 
@@ -194,7 +215,7 @@ func main() {
 
 It is important to note that a report is sent to IOpipe when `Error()` is called. So you should only record exceptions this way for failure states. For caught exceptions that are not a failure state, it is recommended to use custom metrics.
 
-You also don't need to use `Error()` if the error is being returned as the second return value of the function. IOpipe will add that error to the rpeort for you automatically.
+You also don't need to use `Error()` if the error is being returned as the second return value of the function. IOpipe will add that error to the report for you automatically.
 
 ## Contributing
 
