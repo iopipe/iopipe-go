@@ -53,6 +53,8 @@ func NewAgent(config Config) *Agent {
 	}
 
 	a.preSetup()
+
+	// Debug
 	debug := &defaultConfigDebug
 	envDebug := os.Getenv("IOPIPE_DEBUG")
 	if envDebug != "" {
@@ -65,6 +67,7 @@ func NewAgent(config Config) *Agent {
 		enableDebugMode()
 	}
 
+	// Enabled
 	enabled := &defaultConfigEnabled
 	envEnabled := os.Getenv("IOPIPE_ENABLED")
 	if envEnabled != "" {
@@ -74,11 +77,13 @@ func NewAgent(config Config) *Agent {
 		enabled = config.Enabled
 	}
 
+	// Reporter
 	reporter := defaultReporter
 	if config.Reporter != nil {
 		reporter = config.Reporter
 	}
 
+	// TimeoutWindow
 	timeoutWindow := &defaultConfigTimeoutWindow
 	envTimeoutWindow := os.Getenv("IOPIPE_TIMEOUT_WINDOW")
 	envTimeoutWindowInt, err := strconv.Atoi(envTimeoutWindow)
@@ -90,6 +95,7 @@ func NewAgent(config Config) *Agent {
 		timeoutWindow = config.TimeoutWindow
 	}
 
+	// Token
 	envToken := os.Getenv("IOPIPE_TOKEN")
 	token := &envToken
 	if config.Token != nil {

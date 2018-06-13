@@ -4,16 +4,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var logger *log.Entry
+var logger *log.Logger
 
 func init() {
-	log.SetLevel(log.InfoLevel)
+	logger = log.New()
 
-	logger = log.WithFields(log.Fields{
-		"name": "iopipe",
-	})
+	logger.SetLevel(log.InfoLevel)
 }
 
 func enableDebugMode() {
-	log.SetLevel(log.DebugLevel)
+	logger.SetLevel(log.DebugLevel)
 }
