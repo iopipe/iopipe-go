@@ -9,7 +9,7 @@ type Region struct {
 	URL    string
 }
 
-func TestGetBaseURL(t *testing.T) {
+func TestReporter_getBaseURL(t *testing.T) {
 	regions := []Region{
 		Region{Region: "us-east-1", URL: "https://metrics-api.iopipe.com/"},
 		Region{Region: "us-west-2", URL: "https://metrics-api.us-west-2.iopipe.com/"},

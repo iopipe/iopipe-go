@@ -9,6 +9,7 @@ _WARNING! This library is in an alpha state, use at your own risk!_
   - [Contexts](#contexts)
   - [Custom Metrics](#custom-metrics)
   - [Labels](#labels)
+  - [Reporting Errors](#reporting-errors)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -159,6 +160,41 @@ func main() {
 	lambda.Start(agent.WrapHandler(hello))
 }
 ```
+
+### Reporting Errors
+
+The IOpipe agent will automatically recover, trace and re-panic any unhandled panics in your function. If you want to trace errors in your case, you can use the `.Error(err)` method. This will add the error to the current report.
+
+```go
+import (
+	"context"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/iopipe/iopipe-go"
+)
+
+var agent = iopipe.NewAgent(iopipe.Config{})
+
+func hello(ctx context.Context) (string, error) {
+	context, _ := iopipe.FromContext(ctx)
+
+	thing, err := doSomething()
+
+	if err != nil {
+	  context.iopipe.Error(err)
+	}
+
+	return "Hello ƛ!", nil
+}
+
+func main() {
+	lambda.Start(agent.WrapHandler(hello))
+}
+```
+
+It is important to note that a report is sent to IOpipe when `Error()` is called. So you should only record exceptions this way for failure states. For caught exceptions that are not a failure state, it is recommended to use custom metrics.
+
+You also don't need to use `Error()` if the error is being returned as the second return value of the function. IOpipe will add that error to the rpeort for you automatically.
 
 ## Contributing
 

@@ -174,7 +174,7 @@ func NewReport(handler *HandlerWrapper) *Report {
 
 		ClientID:      token,
 		InstallMethod: "manual",
-		ProcessID:     ProcessID,
+		ProcessID:     processID,
 		Timestamp:     int(startTime.UnixNano() / 1e6),
 		AWS: &ReportAWS{
 			FunctionName:             lambdacontext.FunctionName,
@@ -191,13 +191,13 @@ func NewReport(handler *HandlerWrapper) *Report {
 			Agent: &ReportEnvironmentAgent{
 				Runtime:  RUNTIME,
 				Version:  VERSION,
-				LoadTime: LoadTime,
+				LoadTime: loadTime,
 			},
 			Host: &ReportEnvironmentHost{
-				BootID: BootID,
+				BootID: bootID,
 			},
 			OS: &ReportEnvironmentOS{
-				Hostname: Hostname,
+				Hostname: hostname,
 				Linux: &ReportEnvironmentOSLinux{
 					PID: &ReportEnvironmentOSLinuxPID{
 						Self: &ReportEnvironmentOSLinuxPIDSelf{
@@ -214,10 +214,10 @@ func NewReport(handler *HandlerWrapper) *Report {
 			},
 			Runtime: &ReportEnvironmentRuntime{
 				Name:    RUNTIME,
-				Version: RuntimeVersion,
+				Version: runtimeVersion,
 			},
 		},
-		ColdStart:     ColdStart,
+		ColdStart:     coldStart,
 		CustomMetrics: []CustomMetric{},
 		labels:        make(map[string]struct{}, 0),
 		Labels:        make([]string, 0),
@@ -279,6 +279,7 @@ func (r *Report) prepare(err error) {
 	r.Environment.OS.UsedMem = mem.used
 }
 
+// send sends the report to IOpipe
 func (r *Report) send() {
 	if r.sent {
 		return
@@ -299,6 +300,7 @@ func (r *Report) send() {
 	r.postReport()
 }
 
+// preReport runs the PreReport hooks
 func (r *Report) preReport() {
 	var wg sync.WaitGroup
 	wg.Add(len(r.agent.plugins))
@@ -316,6 +318,7 @@ func (r *Report) preReport() {
 	wg.Wait()
 }
 
+// postReport runs the PostReport hooks
 func (r *Report) postReport() {
 	var wg sync.WaitGroup
 	wg.Add(len(r.agent.plugins))

@@ -133,6 +133,7 @@ func (a *Agent) WrapHandler(handler interface{}) interface{} {
 	return wrapHandler(handler, a)
 }
 
+// preSetup runs the PreSetup hooks
 func (a *Agent) preSetup() {
 	var wg sync.WaitGroup
 	wg.Add(len(a.plugins))
@@ -150,6 +151,7 @@ func (a *Agent) preSetup() {
 	wg.Wait()
 }
 
+// postSetup runs the PostSetup hooks
 func (a *Agent) postSetup() {
 	var wg sync.WaitGroup
 	wg.Add(len(a.plugins))
@@ -167,8 +169,8 @@ func (a *Agent) postSetup() {
 	wg.Wait()
 }
 
+// wrapHandler decorates the handler with the handler wrapper
 func wrapHandler(handler interface{}, agentInstance *Agent) lambdaHandler {
-	// decorate the handler
 	return func(context context.Context, payload interface{}) (interface{}, error) {
 		handlerWrapper := NewHandlerWrapper(handler, agentInstance)
 		return handlerWrapper.Invoke(context, payload)

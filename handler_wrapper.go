@@ -90,7 +90,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	response, err = hw.wrappedHandler(ctx, payload)
 
-	ColdStart = false
+	coldStart = false
 
 	hw.postInvoke(ctx, payload)
 
@@ -154,6 +154,7 @@ func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 	}
 }
 
+// preInvoke runs the PreInvoke hooks
 func (hw *HandlerWrapper) preInvoke(ctx context.Context, payload interface{}) {
 	var wg sync.WaitGroup
 	wg.Add(len(hw.agent.plugins))
@@ -171,6 +172,7 @@ func (hw *HandlerWrapper) preInvoke(ctx context.Context, payload interface{}) {
 	wg.Wait()
 }
 
+// postInvoke runs the PostInvoke hooks
 func (hw *HandlerWrapper) postInvoke(ctx context.Context, payload interface{}) {
 	var wg sync.WaitGroup
 	wg.Add(len(hw.agent.plugins))

@@ -8,34 +8,35 @@ import (
 )
 
 var (
-	// BootID is the kernel's boot_id
-	BootID = readBootID()
+	// bootID is the kernel's boot_id
+	bootID = readBootID()
 
-	// ColdStart is true if this is a cold start
-	ColdStart = true
+	// coldStart is true if this is a cold start
+	coldStart = true
 
-	// Hostname is the system's hostname
-	Hostname = readHostname()
+	// hostname is the system's hostname
+	hostname = readHostname()
 
-	// LoadTime is the unix time the module was loaded
-	LoadTime = int(time.Now().UnixNano() / 1e6)
+	// loadTime is the unix time the module was loaded
+	loadTime = int(time.Now().UnixNano() / 1e6)
 
-	// ProcessID is the ID for this process
-	ProcessID = GetProcessID()
+	// processID is the ID for this process
+	processID = getProcessID()
 
 	// RuntimeVersion is the golang runtime version (minus "go" prefix)
-	RuntimeVersion = runtime.Version()[2:]
+	runtimeVersion = runtime.Version()[2:]
 )
 
 const (
 	// VERSION is the version of the IOpipe agent
 	VERSION = "0.1.1"
+
 	// RUNTIME is the runtime of the IOpipe agent
 	RUNTIME = "go"
 )
 
-// GetProcessID returns a unique identifier for this process
-func GetProcessID() string {
+// getProcessID returns a unique identifier for this process
+func getProcessID() string {
 	var uuid UUID
 	io.ReadFull(rand.Reader, uuid[:])
 
