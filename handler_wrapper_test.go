@@ -247,6 +247,24 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			So(reporterCalled, ShouldBeTrue)
 			So(reportError, ShouldResemble, &struct{}{})
 		})
+
+		// This is really just a test to cover the timeout done() codepath
+		Convey("A deadline without a timeout window is on it's own", func() {
+			var reporterCalled bool
+
+			deadlineContext, deadlineCancel := context.WithDeadline(expectedContext, time.Now().Add(40*time.Millisecond))
+			defer deadlineCancel()
+
+			hw.wrappedHandler = wrapperHandlerThatSleeps
+			a.Reporter = func(report *Report) error {
+				reporterCalled = true
+				return nil
+			}
+
+			hw.Invoke(deadlineContext, expectedPayload)
+
+			So(reporterCalled, ShouldBeTrue)
+		})
 	})
 }
 

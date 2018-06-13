@@ -54,7 +54,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	// Start the timeout clock and handle timeouts
 	go func() {
 		if hw.deadline.IsZero() {
-			fmt.Println("Deadline is zero, disabling timeout handling")
+			logger.Debug("Deadline is zero, disabling timeout handling")
 			return
 		}
 
@@ -68,18 +68,18 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 		// If timeout duration is in the past, disable timeout handling
 		if time.Now().After(timeoutDuration) {
-			fmt.Println("Timeout deadline is in the past, disabling timeout handling")
+			logger.Debug("Timeout deadline is in the past, disabling timeout handling")
 			return
 		}
 
-		fmt.Println("Setting function to timeout in", time.Until(timeoutDuration).String())
+		logger.Debug("Setting function to timeout in", time.Until(timeoutDuration).String())
 
 		timeoutChannel := time.After(time.Until(timeoutDuration))
 
 		select {
 		// We're within the timeout window
 		case <-timeoutChannel:
-			fmt.Println("Function is about to timeout, sending report")
+			logger.Debug("Function is about to timeout, sending report")
 			hw.report.prepare(fmt.Errorf("Timeout Exceeded"))
 			hw.report.send()
 			return
@@ -105,7 +105,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 // Error adds an  error to the report
 func (hw *HandlerWrapper) Error(err error) {
 	if hw.report == nil {
-		fmt.Println("Attempting to add error before function decorated with IOpipe. This error will not be recorded.")
+		logger.Warn("Attempting to add error before function decorated with IOpipe. This error will not be recorded.")
 		return
 	}
 
@@ -116,12 +116,12 @@ func (hw *HandlerWrapper) Error(err error) {
 // Label adds a label to the report
 func (hw *HandlerWrapper) Label(name string) {
 	if hw.report == nil {
-		fmt.Println("Attempting to add labels before function decorated with IOpipe. This metric will not be recorded.")
+		logger.Warn("Attempting to add labels before function decorated with IOpipe. This metric will not be recorded.")
 		return
 	}
 
 	if utf8.RuneCountInString(name) > 128 {
-		fmt.Println(fmt.Sprintf("Label name %s is longer than allowed limit of 128 characters. This label will not be recorded.", name))
+		logger.Warn(fmt.Sprintf("Label name %s is longer than allowed limit of 128 characters. This label will not be recorded.", name))
 		return
 	}
 
@@ -134,12 +134,12 @@ func (hw *HandlerWrapper) Label(name string) {
 // Metric adds a custom metric to the report
 func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 	if hw.report == nil {
-		fmt.Println("Attempting to add metrics before function decorated with IOpipe. This metric will not be recorded.")
+		logger.Warn("Attempting to add metrics before function decorated with IOpipe. This metric will not be recorded.")
 		return
 	}
 
 	if utf8.RuneCountInString(name) > 128 {
-		fmt.Println(fmt.Sprintf("Metric of name %s is longer than allowed limit of 128 characters. This metric will not be recorded.", name))
+		logger.Warn(fmt.Sprintf("Metric of name %s is longer than allowed limit of 128 characters. This metric will not be recorded.", name))
 		return
 	}
 

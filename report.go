@@ -1,7 +1,6 @@
 package iopipe
 
 import (
-	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -293,7 +292,7 @@ func (r *Report) send() {
 		err := r.agent.Reporter(r)
 
 		if err != nil {
-			fmt.Println("Reporting error: ", err)
+			logger.Debug("Reporting error: ", err)
 		}
 	}
 

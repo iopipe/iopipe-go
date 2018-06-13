@@ -75,6 +75,7 @@ func newHandler(handlerSymbol interface{}) lambdaHandler {
 		if takesContext {
 			args = append(args, reflect.ValueOf(ctx))
 		}
+
 		if (handlerType.NumIn() == 1 && !takesContext) || handlerType.NumIn() == 2 {
 			// TODO: perhaps there's a better way to not have to do this twice ._.
 			payloadBytes, err := json.Marshal(payload)

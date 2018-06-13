@@ -61,6 +61,9 @@ func NewAgent(config Config) *Agent {
 	if config.Debug != nil {
 		debug = config.Debug
 	}
+	if *debug {
+		enableDebugMode()
+	}
 
 	enabled := &defaultConfigEnabled
 	envEnabled := os.Getenv("IOPIPE_ENABLED")
@@ -109,15 +112,15 @@ func NewAgent(config Config) *Agent {
 
 // WrapHandler wraps the handler with the IOpipe agent
 func (a *Agent) WrapHandler(handler interface{}) interface{} {
-	fmt.Println(fmt.Sprintf("%s wrapped with IOpipe decorator", getFuncName(handler)))
+	logger.Debug(fmt.Sprintf("%s wrapped with IOpipe decorator", getFuncName(handler)))
 
 	if a.Enabled != nil && !*a.Enabled {
-		fmt.Println("IOpipe agent disabled, skipping reporting")
+		logger.Debug("IOpipe agent disabled, skipping reporting")
 		return handler
 	}
 
 	if a.Token != nil && *a.Token == "" {
-		fmt.Println("Your function is decorated with iopipe, but a valid token was not found. Set the IOPIPE_TOKEN environment variable with your IOpipe project token.")
+		logger.Debug("Your function is decorated with iopipe, but a valid token was not found. Set the IOPIPE_TOKEN environment variable with your IOpipe project token.")
 		return handler
 	}
 
