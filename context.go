@@ -9,7 +9,7 @@ import (
 // ContextWrapper wraps the AWS lambda context
 type ContextWrapper struct {
 	*lambdacontext.LambdaContext
-	iopipe *HandlerWrapper
+	IOpipe *HandlerWrapper
 }
 
 type key struct{}

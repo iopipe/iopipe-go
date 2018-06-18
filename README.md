@@ -123,7 +123,7 @@ func main() {
 ```
 
 And the `lambdacontext.LambdaContext` will be embedded in `context`. In addition to this, `iopipe.FromContext()` also
-attaches `context.iopipe` which exposes methods to instrument your functions. See the sections below for examples.
+attaches `context.IOpipe` which exposes methods to instrument your functions. See the sections below for examples.
 
 ### Custom Metrics
 
@@ -143,7 +143,7 @@ func hello(ctx context.Context) (string, error) {
 	context, _ := iopipe.FromContext(ctx)
 
 	// numerical (int, float) and string types supported for values
-	context.iopipe.Metric("my_metric", 42)
+	context.IOpipe.Metric("my_metric", 42)
 
 	return "Hello ƛ!", nil
 }
@@ -173,7 +173,7 @@ func hello(ctx context.Context) (string, error) {
 	context, _ := iopipe.FromContext(ctx)
 
 	// the name of the label must be a string
-	context.iopipe.Label("this-invocation-is-special")
+	context.IOpipe.Label("this-invocation-is-special")
 
 	return "Hello ƛ!", nil
 }
@@ -203,7 +203,7 @@ func hello(ctx context.Context) (string, error) {
 	thing, err := doSomething()
 
 	if err != nil {
-	  context.iopipe.Error(err)
+	  context.IOpipe.Error(err)
 	}
 
 	return "Hello ƛ!", nil

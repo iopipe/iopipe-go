@@ -18,7 +18,7 @@ func TestContext_NewContextWrapper(t *testing.T) {
 		})
 
 		Convey("And provide the handler wrapper", func() {
-			So(cw.iopipe, ShouldEqual, hw)
+			So(cw.IOpipe, ShouldEqual, hw)
 		})
 	})
 }
