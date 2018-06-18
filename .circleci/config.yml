@@ -41,7 +41,8 @@ jobs:
       GOOS: linux
     steps:
       - checkout
-      - run: curl -sL https://deb.nodesource.com/setup_10.x sudo -E bash - sudo apt-get install -y nodejs
+      - run: curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+      - run: sudo apt-get install -y nodejs
       - run: npm install -g serverless
       - run: cd acceptance/serverless && make build
 
