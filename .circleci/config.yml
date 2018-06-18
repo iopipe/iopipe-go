@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1-stretch
     working_directory: /go/src/github.com/iopipe/iopipe-go
     environment:
       GOARCH: amd64
@@ -34,8 +34,11 @@ jobs:
 
   acceptance:
     docker:
-      - image: circleci/golang:1.8
+      - image: circleci/golang:1-stretch
     working_directory: /go/src/github.com/iopipe/iopipe-go
+    environment:
+      GOARCH: amd64
+      GOOS: linux
     steps:
       - checkout
       - run: curl -sL https://deb.nodesource.com/setup_10.x sudo -E bash - sudo apt-get install -y nodejs
