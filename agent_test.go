@@ -11,7 +11,23 @@ import (
 
 func TestAgent_NewAgent(t *testing.T) {
 	Convey("An agent created with empty Config should have default configuration", t, func() {
+		// TODO: A util to handle env var boilerplate like this
+		oldDebugValue := os.Getenv("IOPIPE_DEBUG")
+		oldEnabledValue := os.Getenv("IOPIPE_ENABLED")
+		oldTimeoutWindowValue := os.Getenv("IOPIPE_TIMEOUT_WINDOW")
+		oldTokenValue := os.Getenv("IOPIPE_TOKEN")
+
+		os.Setenv("IOPIPE_DEBUG", "")
+		os.Setenv("IOPIPE_ENABLED", "")
+		os.Setenv("IOPIPE_TIMEOUT_WINDOW", "")
+		os.Setenv("IOPIPE_TOKEN", "")
+
 		agentWithDefaultConfig := NewAgent(Config{})
+
+		os.Setenv("IOPIPE_DEBUG", oldDebugValue)
+		os.Setenv("IOPIPE_ENABLED", oldEnabledValue)
+		os.Setenv("IOPIPE_TIMEOUT_WINDOW", oldTimeoutWindowValue)
+		os.Setenv("IOPIPE_TOKEN", oldTokenValue)
 
 		Convey("Agent should disable debug mode by default", func() {
 			So(*agentWithDefaultConfig.Debug, ShouldBeFalse)
@@ -99,6 +115,16 @@ func TestAgent_NewAgent(t *testing.T) {
 			So(*a.TimeoutWindow, ShouldEqual, time.Duration(300*time.Millisecond))
 
 			os.Setenv("IOPIPE_DEBUG", oldValue)
+		})
+
+		Convey("IOPIPE_TOKEN should set the token", func() {
+			oldValue := os.Getenv("IOPIPE_TOKEN")
+			os.Setenv("IOPIPE_TOKEN", "foobar")
+
+			a := NewAgent(Config{})
+			So(*a.Token, ShouldEqual, "foobar")
+
+			os.Setenv("IOPIPE_TOKEN", oldValue)
 		})
 	})
 
