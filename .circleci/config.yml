@@ -51,14 +51,14 @@ workflows:
   build-and-acceptance:
     jobs:
       - build
-          filters:
-            branches:
-              only: /.*/
-            tags:
-              only: /^v.*/
+        filters:
+          branches:
+            only: /.*/
+          tags:
+            only: /^v.*/
       - acceptance:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
+        requires:
+          - build
+        filters:
+          branches:
+            only: master
