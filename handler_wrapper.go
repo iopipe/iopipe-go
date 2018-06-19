@@ -31,14 +31,14 @@ func NewHandlerWrapper(handler interface{}, agent *Agent) *HandlerWrapper {
 
 // Invoke invokes the wrapped handler, handling panics and timeouts
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
-	hw.report = NewReport(hw)
-
 	lc, _ := lambdacontext.FromContext(ctx)
 	hw.lambdaContext = lc
 
 	cw := NewContextWrapper(lc, hw)
 	ctx = NewContext(ctx, cw)
 	hw.deadline, _ = ctx.Deadline()
+
+	hw.report = NewReport(hw)
 
 	hw.preInvoke(ctx, payload)
 
