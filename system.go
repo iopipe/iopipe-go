@@ -134,7 +134,7 @@ func readPIDStatus() *pidStatus {
 	return &pidStatus{
 		fdSize:  int32(fdSize),
 		threads: threads,
-		vmRss:   memInfo.RSS,
+		vmRss:   memInfo.RSS / 1024,
 	}
 }
 
