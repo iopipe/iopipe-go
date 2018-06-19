@@ -47,20 +47,22 @@ func getFuncName(f interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 }
 
-func newFalse() *bool {
+// False returns a pointer to false
+func False() *bool {
 	b := false
 	return &b
 }
 
-func newTrue() *bool {
+// True returns a pointer to true
+func True() *bool {
 	b := true
 	return &b
 }
 
 func strToBool(s string) *bool {
 	if s == "true" || s == "1" {
-		return newTrue()
+		return True()
 	}
 
-	return newFalse()
+	return False()
 }

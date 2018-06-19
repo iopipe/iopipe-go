@@ -5,7 +5,7 @@ import (
 	"github.com/iopipe/iopipe-go"
 )
 
-var agent = iopipe.NewAgent(iopipe.Config{})
+var agent = iopipe.NewAgent(iopipe.Config{Debug: iopipe.True()})
 
 func handler() (string, error) {
 	return "Invocation successful", nil

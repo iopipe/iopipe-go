@@ -232,6 +232,14 @@ func (r *Report) prepare(err error) {
 	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
 	r.Duration = int(endTime.Sub(r.startTime).Nanoseconds())
 
+	if err != nil {
+		r.Errors = coerceInvocationError(err)
+	}
+
+	for label := range r.labels {
+		r.Labels = append(r.Labels, label)
+	}
+
 	statEnd := readPIDStat()
 	r.Environment.OS.Linux.PID.Self.Stat.Cstime = statEnd.cstime
 	r.Environment.OS.Linux.PID.Self.Stat.Cutime = statEnd.cutime
@@ -243,14 +251,6 @@ func (r *Report) prepare(err error) {
 		FDSize:  status.fdSize,
 		Threads: status.threads,
 		VMRSS:   status.vmRss,
-	}
-
-	if err != nil {
-		r.Errors = coerceInvocationError(err)
-	}
-
-	for label := range r.labels {
-		r.Labels = append(r.Labels, label)
 	}
 
 	cpus := readSystemStat()
