@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func benchmarkReadBootID(b *testing.B) {
+func BenchmarkSystem_ReadBootID(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		readBootID()
 	}
@@ -22,6 +22,12 @@ func TestSystem_readBootID(t *testing.T) {
 	})
 }
 
+func BenchmarkSystem_ReadDisk(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		readDisk()
+	}
+}
+
 func TestSystem_readDisk(t *testing.T) {
 	Convey("readDisk should return stats about /tmp", t, func() {
 		d := readDisk()
@@ -30,6 +36,12 @@ func TestSystem_readDisk(t *testing.T) {
 		So(d.usedMiB, ShouldNotBeNil)
 		So(d.usedPercentage, ShouldNotBeNil)
 	})
+}
+
+func BenchmarkSystem_ReadHostname(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		readDisk()
+	}
 }
 
 func benchmarkReadHostname(b *testing.B) {
@@ -47,6 +59,12 @@ func TestSystem_readHostname(t *testing.T) {
 	})
 }
 
+func BenchmarkSystem_ReadMemInfo(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		readMemInfo()
+	}
+}
+
 func TestSystem_readMemInfo(t *testing.T) {
 	Convey("readMemInfo should return memory stats", t, func() {
 		m := readMemInfo()
@@ -61,6 +79,12 @@ func TestSystem_readMemInfo(t *testing.T) {
 	})
 }
 
+func BenchmarkSystem_ReadPIDStat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		readPIDStat()
+	}
+}
+
 func TestSystem_readPIDStat(t *testing.T) {
 	Convey("readPIDStat should return process cpu times", t, func() {
 		p := readPIDStat()
@@ -72,6 +96,12 @@ func TestSystem_readPIDStat(t *testing.T) {
 	})
 }
 
+func BenchmarkSystem_ReadPIDStatus(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		readPIDStatus()
+	}
+}
+
 func TestSystem_readPIDStatus(t *testing.T) {
 	Convey("readPIDStatus should reutrn fd, thread count and rss", t, func() {
 		p := readPIDStatus()
@@ -80,6 +110,12 @@ func TestSystem_readPIDStatus(t *testing.T) {
 		So(p.threads, ShouldNotBeNil)
 		So(p.vmRss, ShouldNotBeNil)
 	})
+}
+
+func BenchmarkSystem_ReadSystemStat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		readSystemStat()
+	}
 }
 
 func TestSystem_readSystemStat(t *testing.T) {
