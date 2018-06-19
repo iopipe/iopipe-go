@@ -7,6 +7,10 @@ jobs:
     environment:
       GOARCH: amd64
       GOOS: linux
+      IOPIPE_DEBUG: ""
+      IOPIPE_ENABLED: ""
+      IOPIPE_TIMEOUT_WINDOW: ""
+      IOPIPE_TOKEN: ""
       TEST_RESULTS: /tmp/test-results
     steps:
       - checkout
