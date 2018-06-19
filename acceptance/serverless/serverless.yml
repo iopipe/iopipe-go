@@ -15,10 +15,26 @@ package:
    - ./bin/**
 
 functions:
+  baseline:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/baseline
+  baseline-coldstart:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/baseline-coldstart
+  coldstart:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/coldstart
   error:
     events:
       - schedule: rate(10 minutes)
     handler: bin/error
+  handled-error:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/handled-error
   labels:
     events:
       - schedule: rate(10 minutes)
@@ -35,3 +51,8 @@ functions:
     events:
       - schedule: rate(10 minutes)
     handler: bin/success
+  timeout:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/timeout
+    timeout: 1
