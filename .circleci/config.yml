@@ -44,13 +44,24 @@ jobs:
       - run: curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
       - run: sudo apt-get install -y nodejs
       - run: sudo npm install -g serverless
-      - run: cd acceptance/serverless && make build
+      - run: cd acceptance/serverless && make build && sls deploy
 
 workflows:
   version: 2
+  build:
+    jobs:
+      - build
+          filters:
+            branches:
+              ignore: master
   build-and-acceptance:
     jobs:
       - build
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v.*/
       - acceptance:
           requires:
             - build
