@@ -1,8 +1,8 @@
-# IOpipe Agent for Go (alpha)
+# IOpipe Agent for Go (beta)
+
+[![Slack](https://img.shields.io/badge/chat-slack-ff69b4.svg)](https://iopipe.now.sh)
 
 This package provides analytics and distributed tracing for event-driven applications running on AWS Lambda.
-
-_WARNING! This library is in an alpha state, use at your own risk!_
 
 - [Installation](#installation)
 - [Usage](#usage)
