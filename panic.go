@@ -58,14 +58,13 @@ func NewInvocationError(err error) *InvocationError {
 	}
 
 	// Errors aren't displayed without a stack trace
-	const framesToHide = framesToPanicInfo + 4 // here (NewPanicInvocationError) -> handler defer func -> 2 for panic -> actual error
-	panicInfo := getPanicInfo(err, framesToHide)
+	frameInfo := getPanicInfo(err, 0)
 
 	return &InvocationError{
 		Message:    getErrorMessage(err),
 		Name:       getErrorType(err),
-		StackTrace: panicInfo.StackTrace,
-		Stack:      formatStack(panicInfo.StackTrace),
+		StackTrace: frameInfo.StackTrace,
+		Stack:      formatStack(frameInfo.StackTrace),
 	}
 }
 
