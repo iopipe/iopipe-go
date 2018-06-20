@@ -12,7 +12,7 @@ func testFunctionThatPanics() {
 	panic(fmt.Errorf("i am a throwing function"))
 }
 
-func TestNewPanicInvocationError(t *testing.T) {
+func TestPanic_NewPanicInvocationError(t *testing.T) {
 	Convey("Given a parent function that recovers from panics, stores the error using NewPanicInvocationError, and wraps a panicking child function", t, func() {
 		var panicErr *InvocationError
 
@@ -64,13 +64,13 @@ func assertPanicMessage(t *testing.T, panicFunc func(), expectedMessage string) 
 	t.Errorf("Should have exited due to panic")
 }
 
-func TestPanicFormattingStringValue(t *testing.T) {
+func TestPanic_FormattingStringValue(t *testing.T) {
 	Convey("Panic formatting is accurate for String message values", t, func() {
 		assertPanicMessage(t, func() { panic("Panic time!") }, "Panic time!")
 	})
 }
 
-func TestPanicFormattingIntValue(t *testing.T) {
+func TestPanic_formattingIntValue(t *testing.T) {
 	Convey("Panic formatting is accurate for Int message values", t, func() {
 		assertPanicMessage(t, func() { panic(1234) }, "1234")
 	})
@@ -79,14 +79,14 @@ func TestPanicFormattingIntValue(t *testing.T) {
 type CustomError struct{}
 
 func (e CustomError) Error() string { return fmt.Sprintf("Something bad happened!") }
-func TestPanicFormattingCustomError(t *testing.T) {
+func TestPanic_formattingCustomError(t *testing.T) {
 	Convey("Panic formatting is accurate for Customer Error type messages", t, func() {
 		customError := &CustomError{}
 		assertPanicMessage(t, func() { panic(customError) }, customError.Error())
 	})
 }
 
-func TestFormatFrame(t *testing.T) {
+func TestPanic_formatFrame(t *testing.T) {
 	Convey("FormatFrame appropriately formats a variety of runtime.Frame examples", t, func() {
 		var tests = []struct {
 			inputPath        string
@@ -148,7 +148,7 @@ func TestFormatFrame(t *testing.T) {
 	})
 }
 
-func TestRuntimeStackTrace(t *testing.T) {
+func TestPanic_runtimeStackTrace(t *testing.T) {
 	Convey("Runtime stack trace's first element is where the panic happens", t, func() {
 		const framesToHide = framesToPanicInfo
 		panicInfo := getPanicInfo("Panic time!", framesToHide)
@@ -161,6 +161,6 @@ func TestRuntimeStackTrace(t *testing.T) {
 
 		So(frame.Path, ShouldEqual, "github.com/iopipe/iopipe-go/panic_test.go")
 		// So(frame.Line, ShouldEqual, 153)
-		So(frame.Function, ShouldEqual, "TestRuntimeStackTrace.func1")
+		So(frame.Function, ShouldEqual, "TestPanic_runtimeStackTrace.func1")
 	})
 }

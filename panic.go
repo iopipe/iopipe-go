@@ -46,6 +46,7 @@ func NewPanicInvocationError(err interface{}) *InvocationError {
 		Message:    panicInfo.Message,
 		Name:       getErrorType(err),
 		StackTrace: panicInfo.StackTrace,
+		Stack:      formatStack(panicInfo.StackTrace),
 	}
 }
 
@@ -86,6 +87,7 @@ func getErrorMessage(value interface{}) string {
 func getPanicStack(framesToHide int) []*panicErrorStackFrame {
 	s := make([]uintptr, defaultErrorFrameCount)
 	n := runtime.Callers(framesToHide, s)
+
 	if n == 0 {
 		return make([]*panicErrorStackFrame, 0)
 	}
@@ -97,6 +99,7 @@ func getPanicStack(framesToHide int) []*panicErrorStackFrame {
 
 func convertStack(s []uintptr) []*panicErrorStackFrame {
 	var converted []*panicErrorStackFrame
+
 	frames := runtime.CallersFrames(s)
 
 	for {
@@ -109,6 +112,7 @@ func convertStack(s []uintptr) []*panicErrorStackFrame {
 			break
 		}
 	}
+
 	return converted
 }
 
@@ -150,6 +154,16 @@ func formatFrame(inputFrame runtime.Frame) *panicErrorStackFrame {
 		Line:     line,
 		Function: function,
 	}
+}
+
+func formatStack(inputStack []*panicErrorStackFrame) string {
+	s := make([]string, len(inputStack))
+
+	for i, f := range inputStack {
+		s[i] = fmt.Sprintf("%s:%d %s", f.Path, f.Line, f.Function)
+	}
+
+	return strings.Join(s, "\n")
 }
 
 func coerceInvocationError(err error) *InvocationError {
