@@ -49,8 +49,8 @@ const emptyReport = `
   "aws": {
     "functionName": "",
     "functionVersion": "",
-    "awsRequestId": "ERROR",
-    "invokedFunctionArn": "",
+    "awsRequestId": "Missing-Request-Id",
+    "invokedFunctionArn": "arn:aws:lambda:local:0:function:",
     "logGroupName": "",
     "logStreamName": "",
     "memoryLimitInMB": 0,

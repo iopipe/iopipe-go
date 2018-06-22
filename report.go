@@ -1,6 +1,7 @@
 package iopipe
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -153,7 +154,8 @@ func NewReport(handler *HandlerWrapper) *Report {
 	lc := handler.lambdaContext
 	if lc == nil {
 		lc = &lambdacontext.LambdaContext{
-			AwsRequestID: "ERROR",
+			AwsRequestID:       "Missing-Request-Id",
+			InvokedFunctionArn: fmt.Sprintf("arn:aws:lambda:local:0:function:%s", lambdacontext.FunctionName),
 		}
 	}
 
