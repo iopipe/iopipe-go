@@ -32,6 +32,10 @@ functions:
     events:
       - schedule: rate(10 minutes)
     handler: bin/error
+  event:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/event
   handled-error:
     events:
       - schedule: rate(10 minutes)
