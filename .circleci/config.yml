@@ -14,13 +14,18 @@ jobs:
       TEST_RESULTS: /tmp/test-results
     steps:
       - checkout
-      - run: mkdir -p $TEST_RESULTS
+      - run:
+          name: create test results directory
+          command: mkdir -p $TEST_RESULTS
       - restore_cache:
           keys:
             - v1-pkg-cache
-      - run: go get -u github.com/jstemmer/go-junit-report
-      - run: go get -u github.com/golang/dep/cmd/dep
-      - run: dep ensure
+      - run:
+          name: Install junit report generator
+          command: go get -u github.com/jstemmer/go-junit-report
+      - run:
+          name: Install deps
+          command: go get -u github.com/golang/dep/cmd/dep && dep ensure
       - run:
           name: Run unit tests
           command: |
@@ -45,10 +50,18 @@ jobs:
       GOOS: linux
     steps:
       - checkout
-      - run: curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-      - run: sudo apt-get install -y nodejs
-      - run: sudo npm install -g serverless
-      - run: cd acceptance/serverless && make build && sls deploy
+      - run:
+          name: add Node.js PPA
+          command: curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+      - run:
+          name: Install Node.js
+          command: sudo apt-get install -y nodejs
+      - run:
+          name: Install Serverless
+          command: sudo npm install -g serverless
+      - run:
+          name: Build and deploy acceptance tests
+          command: cd acceptance/serverless && make build && sls deploy
 
   coverage:
     docker:
@@ -59,11 +72,19 @@ jobs:
       GOOS: linux
     steps:
       - checkout
-      - run: bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: Install deps
+          command: go get -u github.com/golang/dep/cmd/dep && dep ensure
+      - run:
+          name: Generate coverage report
+          command: go test -race -coverprofile=coverage.txt -covermode=atomic
+      - run:
+          name: Upload coverage report
+          command: bash <(curl -s https://codecov.io/bash)
 
 workflows:
   version: 2
-  build-and-acceptance:
+  build:
     jobs:
       - build
       - acceptance:
