@@ -84,7 +84,7 @@ jobs:
 
 workflows:
   version: 2
-  build:
+  build-all:
     jobs:
       - build
       - acceptance:
