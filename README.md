@@ -1,6 +1,6 @@
 # IOpipe Agent for Go (beta)
 
-[![GoDoc][1]][2] [![Apache 2.0 licensed][3]][4] [![Go Report Card][5]][6] [![Slack][7]][8]
+[![GoDoc][1]][2] [![Apache 2.0][3]][4] [![Go Report Card][5]][6] [![Slack][7]][8]
 
 [1]: https://godoc.org/github.com/iopipe/iopipe-go?status.svg
 [2]: https://godoc.org/github.com/iopipe/iopipe-go
@@ -9,7 +9,7 @@
 [5]: https://goreportcard.com/badge/github.com/iopipe/iopipe-go
 [6]: https://goreportcard.com/report/github.com/iopipe/iopipe-go
 [7]: https://img.shields.io/badge/chat-slack-ff69b4.svg
-[8]: https://iopipe.now.sh)
+[8]: https://iopipe.now.sh
 
 This package provides analytics and distributed tracing for event-driven applications running on AWS Lambda.
 
