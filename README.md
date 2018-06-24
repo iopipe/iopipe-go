@@ -1,15 +1,19 @@
 # IOpipe Agent for Go (beta)
 
-[![GoDoc][1]][2] [![Apache 2.0][3]][4] [![Go Report Card][5]][6] [![Slack][7]][8]
+[![Build Status][1]][2] [![Code Coverage][3]][4] [![GoDoc][5]][6] [![Apache 2.0][7]][8] [![Go Report Card][9]][10] [![Slack][11]][12]
 
-[1]: https://godoc.org/github.com/iopipe/iopipe-go?status.svg
-[2]: https://godoc.org/github.com/iopipe/iopipe-go
-[3]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-[4]: LICENSE
-[5]: https://goreportcard.com/badge/github.com/iopipe/iopipe-go
-[6]: https://goreportcard.com/report/github.com/iopipe/iopipe-go
-[7]: https://img.shields.io/badge/chat-slack-ff69b4.svg
-[8]: https://iopipe.now.sh
+[1]: https://circleci.com/gh/iopipe/iopipe-go.svg?style=svg
+[2]: https://circleci.com/gh/iopipe/iopipe-go
+[3]: https://codecov.io/gh/iopipe/iopipe-go/branch/master/graph/badge.svg
+[4]: https://codecov.io/gh/iopipe/iopipe-go
+[5]: https://godoc.org/github.com/iopipe/iopipe-go?status.svg
+[6]: https://godoc.org/github.com/iopipe/iopipe-go
+[7]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+[8]: LICENSE
+[9]: https://goreportcard.com/badge/github.com/iopipe/iopipe-go
+[10]: https://goreportcard.com/report/github.com/iopipe/iopipe-go
+[11]: https://img.shields.io/badge/chat-slack-ff69b4.svg
+[12]: https://iopipe.now.sh
 
 This package provides analytics and distributed tracing for event-driven applications running on AWS Lambda.
 
