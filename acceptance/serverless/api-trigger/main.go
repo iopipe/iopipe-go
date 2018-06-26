@@ -6,7 +6,10 @@ import (
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/iopipe/iopipe-go"
 )
+
+var agent = iopipe.NewAgent(iopipe.Config{Debug: iopipe.True()})
 
 func handler() (interface{}, error) {
 	url := os.Getenv("API_GATEWAY_URL")
@@ -23,5 +26,5 @@ func handler() (interface{}, error) {
 }
 
 func main() {
-	lambda.Start(handler)
+	lambda.Start(agent.WrapHandler(handler))
 }
