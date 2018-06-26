@@ -7,9 +7,7 @@ import (
 )
 
 func handler() (string, error) {
-	defer os.Exit(1)
-
-	return "Invocation successful", nil
+	os.Exit(1)
 }
 
 func main() {

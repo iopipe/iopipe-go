@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -9,10 +10,13 @@ import (
 
 var agent = iopipe.NewAgent(iopipe.Config{Debug: iopipe.True()})
 
-func handler() (string, error) {
-	defer os.Exit(1)
+func handler(ctx context.Context) (string, error) {
+	context, _ := iopipe.FromContext(ctx)
 
-	return "Invocation successful", nil
+	// Send the report before exiting
+	context.IOpipe.Error(nil)
+
+	os.Exit(1)
 }
 
 func main() {
