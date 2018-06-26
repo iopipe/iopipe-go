@@ -16,6 +16,18 @@ package:
    - ./bin/**
 
 functions:
+  api-gateway:
+    events:
+      - http:
+          path: /
+          method: get
+    handler: bin/api-gateway
+  api-trigger:
+    environment:
+      API_GATEWAY_URL: ${env:API_GATEWAY_URL}
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/api-trigger
   baseline:
     events:
       - schedule: rate(10 minutes)
