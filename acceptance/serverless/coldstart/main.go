@@ -17,6 +17,8 @@ func handler(ctx context.Context) (string, error) {
 	context.IOpipe.Error(nil)
 
 	os.Exit(1)
+
+	return "Invocation successful", nil
 }
 
 func main() {
