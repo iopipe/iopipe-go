@@ -154,7 +154,7 @@ func NewReport(handler *HandlerWrapper) *Report {
 	lc := handler.lambdaContext
 	if lc == nil {
 		lc = &lambdacontext.LambdaContext{
-			AwsRequestID:       "Missing-Request-Id",
+			AwsRequestID:       generateUUID(),
 			InvokedFunctionArn: fmt.Sprintf("arn:aws:lambda:local:0:function:%s", lambdacontext.FunctionName),
 		}
 	}
