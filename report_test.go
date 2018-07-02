@@ -49,7 +49,7 @@ const emptyReport = `
   "aws": {
     "functionName": "",
     "functionVersion": "",
-    "awsRequestId": {{.AWS.AWSRequestID}},
+    "awsRequestId": "{{.AWS.AWSRequestID}}",
     "invokedFunctionArn": "arn:aws:lambda:local:0:function:",
     "logGroupName": "",
     "logStreamName": "",
