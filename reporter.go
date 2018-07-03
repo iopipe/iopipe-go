@@ -65,7 +65,7 @@ func sendReport(report *Report) error {
 	defer res.Body.Close()
 
 	resbody, err := ioutil.ReadAll(res.Body)
-	logger.Debug("body read from IOPIPE", string(resbody))
+	logger.Debug("body read from IOPIPE ", string(resbody))
 	if err != nil {
 		return err
 	}

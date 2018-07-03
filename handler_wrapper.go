@@ -72,7 +72,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 			return
 		}
 
-		logger.Debug("Setting function to timeout in", time.Until(timeoutDuration).String())
+		logger.Debug("Setting function to timeout in ", time.Until(timeoutDuration).String())
 
 		timeoutChannel := time.After(time.Until(timeoutDuration))
 

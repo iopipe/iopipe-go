@@ -1,8 +1,6 @@
 package iopipe
 
 import (
-	"crypto/rand"
-	"io"
 	"runtime"
 	"time"
 )
@@ -21,7 +19,7 @@ var (
 	loadTime = int(time.Now().UnixNano() / 1e6)
 
 	// processID is the ID for this process
-	processID = getProcessID()
+	processID = generateUUID()
 
 	// RuntimeVersion is the golang runtime version (minus "go" prefix)
 	runtimeVersion = runtime.Version()[2:]
@@ -34,14 +32,3 @@ const (
 	// RUNTIME is the runtime of the IOpipe agent
 	RUNTIME = "go"
 )
-
-// getProcessID returns a unique identifier for this process
-func getProcessID() string {
-	var uuid UUID
-	io.ReadFull(rand.Reader, uuid[:])
-
-	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is 10
-
-	return uuid.String()
-}
