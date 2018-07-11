@@ -90,7 +90,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 		}
 
 		a := NewAgent(Config{
-			PluginInstantiators: []PluginInstantiator{
+			Plugins: []PluginInstantiator{
 				TestPlugin(TestPluginConfig{}),
 			},
 		})

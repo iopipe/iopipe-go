@@ -11,12 +11,12 @@ import (
 
 // Config is the config object passed to agent initialization
 type Config struct {
-	Debug               *bool
-	Enabled             *bool
-	PluginInstantiators []PluginInstantiator
-	Reporter            Reporter
-	TimeoutWindow       *time.Duration
-	Token               *string
+	Debug         *bool
+	Enabled       *bool
+	Plugins       []PluginInstantiator
+	Reporter      Reporter
+	TimeoutWindow *time.Duration
+	Token         *string
 }
 
 // Agent is the IOpipe instance
@@ -34,12 +34,12 @@ var (
 
 // NewAgent returns a new IOpipe instance with config
 func NewAgent(config Config) *Agent {
-	if config.PluginInstantiators == nil {
-		config.PluginInstantiators = []PluginInstantiator{}
+	if config.Plugins == nil {
+		config.Plugins = []PluginInstantiator{}
 	}
 
 	var plugins []Plugin
-	pluginInstantiators := config.PluginInstantiators
+	pluginInstantiators := config.Plugins
 
 	if pluginInstantiators != nil {
 		plugins = make([]Plugin, len(pluginInstantiators))
@@ -103,12 +103,12 @@ func NewAgent(config Config) *Agent {
 	}
 
 	a.Config = &Config{
-		Debug:               debug,
-		Enabled:             enabled,
-		PluginInstantiators: pluginInstantiators,
-		Reporter:            reporter,
-		TimeoutWindow:       timeoutWindow,
-		Token:               token,
+		Debug:         debug,
+		Enabled:       enabled,
+		Plugins:       pluginInstantiators,
+		Reporter:      reporter,
+		TimeoutWindow: timeoutWindow,
+		Token:         token,
 	}
 
 	a.postSetup()
