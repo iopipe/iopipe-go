@@ -10,10 +10,7 @@ import (
 	"time"
 )
 
-func getBaseURL(region string) string {
-	// array of supported regions so we can easily look up
-	// whether a region has its own collector
-	// using empty structs takes up no space versus using, say, a bool
+func getCollectorURL(region string) string {
 	supportedRegions := map[string]struct{}{
 		"ap-northeast-1": struct{}{},
 		"ap-southeast-2": struct{}{},
@@ -47,7 +44,7 @@ func sendReport(report *Report) error {
 
 	reportJSONBytes, _ := json.Marshal(report) //.MarshalIndent(report, "", "  ")
 
-	reqURL := getBaseURL(os.Getenv("AWS_REGION")) + "v0/event"
+	reqURL := getCollectorURL(os.Getenv("AWS_REGION")) + "v0/event"
 	report.agent.log.Debug(string(reportJSONBytes))
 
 	req, err := http.NewRequest("POST", reqURL, bytes.NewReader(reportJSONBytes))
