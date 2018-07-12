@@ -30,7 +30,7 @@ func TestHandlerWrapper_NewHandlerWrapper(t *testing.T) {
 func TestHandlerWrapper_Error(t *testing.T) {
 	Convey("A handler wrapper allows errors to be added to a report", t, func() {
 		a := NewAgent(Config{})
-		hw := &HandlerWrapper{agent: a}
+		hw := &HandlerWrapper{agent: a, Log: a.log}
 
 		Convey("Doesnot panic if there is no report", func() {
 			So(hw.report, ShouldBeNil)
@@ -271,7 +271,7 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 func TestHandlerWrapper_Label(t *testing.T) {
 	Convey("A handler wrapper allows labels to be added to a report", t, func() {
 		a := NewAgent(Config{})
-		hw := &HandlerWrapper{agent: a}
+		hw := &HandlerWrapper{agent: a, Log: a.log}
 
 		Convey("Doesnot panic if there is no report", func() {
 
@@ -307,7 +307,7 @@ func TestHandlerWrapper_Label(t *testing.T) {
 func TestHandlerWrapper_Metric(t *testing.T) {
 	Convey("A handler wrapper allows custom metrics to be added to a report", t, func() {
 		a := NewAgent(Config{})
-		hw := &HandlerWrapper{agent: a}
+		hw := &HandlerWrapper{agent: a, Log: a.log}
 
 		Convey("Doesnot panic if there is no report", func() {
 			So(hw.report, ShouldBeNil)

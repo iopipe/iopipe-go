@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/aws/aws-lambda-go/lambdacontext"
+	log "github.com/sirupsen/logrus"
 )
 
 // HandlerWrapper is the IOpipe handler wrapper
@@ -18,6 +19,8 @@ type HandlerWrapper struct {
 	originalHandler interface{}
 	report          *Report
 	wrappedHandler  lambdaHandler
+
+	Log *log.Logger
 }
 
 // NewHandlerWrapper creates a new IOpipe handler wrapper
@@ -26,6 +29,7 @@ func NewHandlerWrapper(handler interface{}, agent *Agent) *HandlerWrapper {
 		agent:           agent,
 		originalHandler: handler,
 		wrappedHandler:  newHandler(handler),
+		Log:             agent.log,
 	}
 }
 
@@ -54,7 +58,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	// Start the timeout clock and handle timeouts
 	go func() {
 		if hw.deadline.IsZero() {
-			logger.Debug("Deadline is zero, disabling timeout handling")
+			hw.Log.Debug("Deadline is zero, disabling timeout handling")
 			return
 		}
 
@@ -68,18 +72,18 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 		// If timeout duration is in the past, disable timeout handling
 		if time.Now().After(timeoutDuration) {
-			logger.Debug("Timeout deadline is in the past, disabling timeout handling")
+			hw.Log.Debug("Timeout deadline is in the past, disabling timeout handling")
 			return
 		}
 
-		logger.Debug("Setting function to timeout in ", time.Until(timeoutDuration).String())
+		hw.Log.Debug("Setting function to timeout in ", time.Until(timeoutDuration).String())
 
 		timeoutChannel := time.After(time.Until(timeoutDuration))
 
 		select {
 		// We're within the timeout window
 		case <-timeoutChannel:
-			logger.Debug("Function is about to timeout, sending report")
+			hw.Log.Debug("Function is about to timeout, sending report")
 			hw.report.prepare(fmt.Errorf("Timeout Exceeded"))
 			hw.report.send()
 			return
@@ -105,7 +109,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 // Error adds an  error to the report
 func (hw *HandlerWrapper) Error(err error) {
 	if hw.report == nil {
-		logger.Warn("Attempting to add error before function decorated with IOpipe. This error will not be recorded.")
+		hw.Log.Warn("Attempting to add error before function decorated with IOpipe. This error will not be recorded.")
 		return
 	}
 
@@ -116,12 +120,12 @@ func (hw *HandlerWrapper) Error(err error) {
 // Label adds a label to the report
 func (hw *HandlerWrapper) Label(name string) {
 	if hw.report == nil {
-		logger.Warn("Attempting to add labels before function decorated with IOpipe. This metric will not be recorded.")
+		hw.Log.Warn("Attempting to add labels before function decorated with IOpipe. This metric will not be recorded.")
 		return
 	}
 
 	if utf8.RuneCountInString(name) > 128 {
-		logger.Warn(fmt.Sprintf("Label name %s is longer than allowed limit of 128 characters. This label will not be recorded.", name))
+		hw.Log.Warn(fmt.Sprintf("Label name %s is longer than allowed limit of 128 characters. This label will not be recorded.", name))
 		return
 	}
 
@@ -134,12 +138,12 @@ func (hw *HandlerWrapper) Label(name string) {
 // Metric adds a custom metric to the report
 func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 	if hw.report == nil {
-		logger.Warn("Attempting to add metrics before function decorated with IOpipe. This metric will not be recorded.")
+		hw.Log.Warn("Attempting to add metrics before function decorated with IOpipe. This metric will not be recorded.")
 		return
 	}
 
 	if utf8.RuneCountInString(name) > 128 {
-		logger.Warn(fmt.Sprintf("Metric of name %s is longer than allowed limit of 128 characters. This metric will not be recorded.", name))
+		hw.Log.Warn(fmt.Sprintf("Metric of name %s is longer than allowed limit of 128 characters. This metric will not be recorded.", name))
 		return
 	}
 

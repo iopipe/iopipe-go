@@ -295,7 +295,7 @@ func (r *Report) send() {
 		err := r.agent.Reporter(r)
 
 		if err != nil {
-			logger.Debug("Reporting error: ", err)
+			r.agent.log.Debug("Reporting error: ", err)
 		}
 	}
 

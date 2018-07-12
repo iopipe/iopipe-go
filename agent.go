@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Config is the config object passed to agent initialization
@@ -22,6 +24,7 @@ type Config struct {
 // Agent is the IOpipe instance
 type Agent struct {
 	*Config
+	log     *log.Logger
 	plugins []Plugin
 }
 
@@ -49,6 +52,7 @@ func NewAgent(config Config) *Agent {
 	}
 
 	a := &Agent{
+		log:     NewLogger(),
 		plugins: plugins,
 	}
 
@@ -64,7 +68,7 @@ func NewAgent(config Config) *Agent {
 		debug = config.Debug
 	}
 	if *debug {
-		enableDebugMode()
+		a.log.SetLevel(log.DebugLevel)
 	}
 
 	// Enabled
@@ -118,15 +122,15 @@ func NewAgent(config Config) *Agent {
 
 // WrapHandler wraps the handler with the IOpipe agent
 func (a *Agent) WrapHandler(handler interface{}) interface{} {
-	logger.Debug(fmt.Sprintf("%s wrapped with IOpipe decorator", getFuncName(handler)))
+	a.log.Debug(fmt.Sprintf("%s wrapped with IOpipe decorator", getFuncName(handler)))
 
 	if a.Enabled != nil && !*a.Enabled {
-		logger.Debug("IOpipe agent disabled, skipping reporting")
+		a.log.Debug("IOpipe agent disabled, skipping reporting")
 		return handler
 	}
 
 	if a.Token != nil && *a.Token == "" {
-		logger.Debug("Your function is decorated with iopipe, but a valid token was not found. Set the IOPIPE_TOKEN environment variable with your IOpipe project token.")
+		a.log.Debug("Your function is decorated with iopipe, but a valid token was not found. Set the IOPIPE_TOKEN environment variable with your IOpipe project token.")
 		return handler
 	}
 
