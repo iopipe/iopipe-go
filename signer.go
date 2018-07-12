@@ -2,7 +2,6 @@ package iopipe
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -38,6 +37,10 @@ func GetSignerURL(region string) string {
 		"us-west-2":      struct{}{},
 	}
 
+	if region == "mock" {
+		return os.Getenv("MOCK_SERVER")
+	}
+
 	if _, exists := supportedRegions[region]; exists {
 		return fmt.Sprintf("https://signer.%s.iopipe.com/", region)
 	}
@@ -46,16 +49,11 @@ func GetSignerURL(region string) string {
 }
 
 // GetSignedRequest returns a signed request for uploading files to IOpipe
-func GetSignedRequest(agent *Agent, context context.Context, extension string) (*SignerResponse, error) {
+func GetSignedRequest(agent *Agent, context *lambdacontext.LambdaContext, extension string) (*SignerResponse, error) {
 	var (
 		err            error
 		networkTimeout = 1 * time.Second
 	)
-
-	lc, _ := lambdacontext.FromContext(context)
-	if lc == nil {
-		return nil, fmt.Errorf("No lambda context available")
-	}
 
 	tr := &http.Transport{
 		DisableKeepAlives: false,
@@ -65,14 +63,15 @@ func GetSignedRequest(agent *Agent, context context.Context, extension string) (
 	httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
 
 	signerRequest := &SignerRequest{
-		ARN:       lc.InvokedFunctionArn,
-		RequestID: lc.AwsRequestID,
+		ARN:       context.InvokedFunctionArn,
+		RequestID: context.AwsRequestID,
 		Timestamp: int(time.Now().UnixNano() / 1e6),
 		Extension: extension,
 	}
 	requestJSONBytes, _ := json.Marshal(signerRequest)
+	agent.log.Debug("Signer request: ", string(requestJSONBytes))
+
 	requestURL := GetSignerURL(os.Getenv("AWS_REGION"))
-	agent.log.Debug(string(requestJSONBytes))
 
 	req, err := http.NewRequest("POST", requestURL, bytes.NewReader(requestJSONBytes))
 	if err != nil {
@@ -90,7 +89,7 @@ func GetSignedRequest(agent *Agent, context context.Context, extension string) (
 	defer res.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(res.Body)
-	agent.log.Debug("body read from IOPIPE ", string(bodyBytes))
+	agent.log.Debug("Signer response: ", string(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
