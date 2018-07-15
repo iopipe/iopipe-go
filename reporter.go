@@ -20,13 +20,15 @@ func getCollectorURL(region string) string {
 		"us-west-2":      struct{}{},
 	}
 
-	url := "https://metrics-api.iopipe.com/"
-
-	if _, exists := supportedRegions[region]; exists {
-		url = fmt.Sprintf("https://metrics-api.%s.iopipe.com/", region)
+	if region == "mock" {
+		return os.Getenv("MOCK_SERVER")
 	}
 
-	return url
+	if _, exists := supportedRegions[region]; exists {
+		return fmt.Sprintf("https://metrics-api.%s.iopipe.com/v0/event", region)
+	}
+
+	return "https://metrics-api.iopipe.com/v0/event"
 }
 
 func sendReport(report *Report) error {
@@ -43,18 +45,18 @@ func sendReport(report *Report) error {
 	httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
 
 	reportJSONBytes, _ := json.Marshal(report) //.MarshalIndent(report, "", "  ")
-
-	reqURL := getCollectorURL(os.Getenv("AWS_REGION")) + "v0/event"
 	report.agent.log.Debug(string(reportJSONBytes))
 
-	req, err := http.NewRequest("POST", reqURL, bytes.NewReader(reportJSONBytes))
+	uRL := getCollectorURL(os.Getenv("AWS_REGION"))
+	req, err := http.NewRequest("POST", uRL, bytes.NewReader(reportJSONBytes))
+
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-
 	res, err := httpsClient.Do(req)
+
 	if err != nil {
 		return err
 	}
@@ -63,6 +65,7 @@ func sendReport(report *Report) error {
 
 	resbody, err := ioutil.ReadAll(res.Body)
 	report.agent.log.Debug("body read from IOPIPE ", string(resbody))
+
 	if err != nil {
 		return err
 	}
