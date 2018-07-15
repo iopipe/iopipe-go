@@ -48,7 +48,7 @@ func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {
 	}
 }
 
-// JSONEntry is a log message
+// JSONEntry is a JSON log message
 type JSONEntry struct {
 	Timestamp string `json:"timestamp"`
 	Name      string `json:"name"`
