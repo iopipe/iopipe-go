@@ -21,14 +21,12 @@ func TestLoggerPlugin_LoggerPlugin(t *testing.T) {
 			return nil
 		}
 
-		handler := func(ctx context.Context, payload interface{}) (interface{}, error) {
+		hw := NewHandlerWrapper(func(ctx context.Context, payload interface{}) (interface{}, error) {
 			context, _ := FromContext(ctx)
 			context.IOpipe.Log.Debug("Some debug message")
 
 			return nil, nil
-		}
-
-		hw := NewHandlerWrapper(handler, a)
+		}, a)
 
 		Convey("Logger plugin invoke hooks fired", func() {
 			ctx := context.Background()
