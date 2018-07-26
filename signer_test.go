@@ -57,9 +57,11 @@ func TestSigner_GetSignedRequest(t *testing.T) {
 		AwsRequestID:       "123",
 		InvokedFunctionArn: "Foo::Bar::Baz",
 	}
+	hw := &HandlerWrapper{agent: a, lambdaContext: lc}
+	r := NewReport(hw)
 
 	Convey("GetSignedRequest should return a signed request", t, func() {
-		res, err := GetSignedRequest(a, lc, ".txt")
+		res, err := GetSignedRequest(r, ".txt")
 
 		So(err, ShouldBeNil)
 		So(res.JWTAccess, ShouldEqual, "foobar")

@@ -1,20 +1,23 @@
 package iopipe
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // LoggerPluginConfig is the logger plugin configuration
-type LoggerPluginConfig struct {
-	Key string
-}
+type LoggerPluginConfig struct{}
 
 type loggerPlugin struct {
 	LoggerPluginConfig
+	proxyWriter *ProxyWriter
 }
 
 func (p *loggerPlugin) Meta() *PluginMeta {
@@ -31,20 +34,51 @@ func (p *loggerPlugin) Enabled() bool {
 }
 
 func (p *loggerPlugin) PreSetup(agent *Agent) {
-	log.SetFormatter(JSONFormatter{})
-	agent.log = NewLogger()
+	if agent.log == nil {
+		agent.log = NewLogger()
+	}
+
+	agent.log.Formatter = JSONFormatter{}
+	agent.log.Out = p.proxyWriter
 }
 
 func (p *loggerPlugin) PostSetup(agent *Agent)                              {}
 func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
 func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
 func (p *loggerPlugin) PreReport(report *Report)                            {}
-func (p *loggerPlugin) PostReport(report *Report)                           {}
+
+func (p *loggerPlugin) PostReport(report *Report) {
+	report.agent.AddWorker(func() {
+		defer p.proxyWriter.Reset()
+
+		signedRequest, err := GetSignedRequest(report, ".log")
+		if err != nil {
+			report.agent.log.Error(err)
+			return
+		}
+
+		httpsClient := http.Client{}
+		req, err := http.NewRequest("PUT", signedRequest.SignedRequest, p.proxyWriter)
+		if err != nil {
+			report.agent.log.Error(err)
+			return
+		}
+
+		_, err = httpsClient.Do(req)
+		if err != nil {
+			report.agent.log.Error(err)
+			return
+		}
+	})
+}
 
 // LoggerPlugin loads the logger plugin
 func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {
 	return func() Plugin {
-		return &loggerPlugin{config}
+		return &loggerPlugin{
+			LoggerPluginConfig: config,
+			proxyWriter:        NewProxyWriter(),
+		}
 	}
 }
 
@@ -59,6 +93,7 @@ type JSONEntry struct {
 // JSONFormatter formats logs into JSON
 type JSONFormatter struct{}
 
+// Format formats a log entry into JSON
 func (f JSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 	jsonEntry := JSONEntry{
 		Timestamp: entry.Time.UTC().Format("2006-01-02 15:04:05.000"),
@@ -73,4 +108,33 @@ func (f JSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 	}
 
 	return append(serialized, '\n'), nil
+}
+
+// ProxyWriter proxies stderr and writes logs to buffer
+type ProxyWriter struct {
+	buffer   *bytes.Buffer
+	proxyOut io.Writer
+}
+
+// NewProxyWriter returns a new proxy log writer
+func NewProxyWriter() *ProxyWriter {
+	return &ProxyWriter{
+		buffer:   &bytes.Buffer{},
+		proxyOut: os.Stderr,
+	}
+}
+
+func (w *ProxyWriter) Read(p []byte) (int, error) {
+	return w.buffer.Read(p)
+}
+
+// Reset resets the memory buffer
+func (w *ProxyWriter) Reset() {
+	w.buffer.Reset()
+}
+
+func (w *ProxyWriter) Write(p []byte) (int, error) {
+	w.buffer.Write(p)
+
+	return w.proxyOut.Write(p)
 }

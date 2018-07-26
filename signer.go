@@ -8,10 +8,9 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
+// SignerRequest is a signer request
 type SignerRequest struct {
 	ARN       string `json:"arn"`
 	RequestID string `json:"requestId"`
@@ -19,6 +18,7 @@ type SignerRequest struct {
 	Extension string `json:"extension"`
 }
 
+// SignerResponse is a signer response
 type SignerResponse struct {
 	JWTAccess     string `json:"jwtAccess"`
 	SignedRequest string `json:"signedRequest"`
@@ -49,7 +49,7 @@ func GetSignerURL(region string) string {
 }
 
 // GetSignedRequest returns a signed request for uploading files to IOpipe
-func GetSignedRequest(agent *Agent, context *lambdacontext.LambdaContext, extension string) (*SignerResponse, error) {
+func GetSignedRequest(report *Report, extension string) (*SignerResponse, error) {
 	var (
 		err            error
 		networkTimeout = 1 * time.Second
@@ -63,13 +63,13 @@ func GetSignedRequest(agent *Agent, context *lambdacontext.LambdaContext, extens
 	httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
 
 	signerRequest := &SignerRequest{
-		ARN:       context.InvokedFunctionArn,
-		RequestID: context.AwsRequestID,
+		ARN:       report.AWS.InvokedFunctionArn,
+		RequestID: report.AWS.AWSRequestID,
 		Timestamp: int(time.Now().UnixNano() / 1e6),
 		Extension: extension,
 	}
 	requestJSONBytes, _ := json.Marshal(signerRequest)
-	agent.log.Debug("Signer request: ", string(requestJSONBytes))
+	report.agent.log.Debug("Signer request: ", string(requestJSONBytes))
 
 	requestURL := GetSignerURL(os.Getenv("AWS_REGION"))
 
@@ -78,7 +78,7 @@ func GetSignedRequest(agent *Agent, context *lambdacontext.LambdaContext, extens
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", *agent.Config.Token)
+	req.Header.Set("Authorization", report.ClientID)
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := httpsClient.Do(req)
@@ -89,7 +89,7 @@ func GetSignedRequest(agent *Agent, context *lambdacontext.LambdaContext, extens
 	defer res.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(res.Body)
-	agent.log.Debug("Signer response: ", string(bodyBytes))
+	report.agent.log.Debug("Signer response: ", string(bodyBytes))
 	if err != nil {
 		return nil, err
 	}
