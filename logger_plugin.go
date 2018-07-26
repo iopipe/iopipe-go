@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -51,24 +53,40 @@ func (p *loggerPlugin) PostReport(report *Report) {
 	report.agent.AddWorker(func() {
 		defer p.proxyWriter.Reset()
 
+		var (
+			err            error
+			networkTimeout = 1 * time.Second
+		)
+
 		signedRequest, err := GetSignedRequest(report, ".log")
 		if err != nil {
 			report.agent.log.Error(err)
 			return
 		}
 
-		httpsClient := http.Client{}
+		tr := &http.Transport{
+			DisableKeepAlives: false,
+			MaxIdleConns:      1, // is this equivalent to the maxCachedSessions in the js implementation
+		}
+		httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
+
 		req, err := http.NewRequest("PUT", signedRequest.SignedRequest, p.proxyWriter)
 		if err != nil {
 			report.agent.log.Error(err)
 			return
 		}
 
-		_, err = httpsClient.Do(req)
+		res, err := httpsClient.Do(req)
 		if err != nil {
 			report.agent.log.Error(err)
 			return
 		}
+
+		report.agent.log.Debug("Log Data Upload Status: ", res.StatusCode)
+
+		defer res.Body.Close()
+		bodyBytes, err := ioutil.ReadAll(res.Body)
+		report.agent.log.Debug("Log Data Upload Response: ", string(bodyBytes))
 	})
 }
 
