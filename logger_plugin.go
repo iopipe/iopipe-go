@@ -20,6 +20,7 @@ type LoggerPluginConfig struct{}
 type loggerPlugin struct {
 	LoggerPluginConfig
 	proxyWriter *ProxyWriter
+	uploads     []string
 }
 
 func (p *loggerPlugin) Meta() *PluginMeta {
@@ -28,6 +29,7 @@ func (p *loggerPlugin) Meta() *PluginMeta {
 		Version:  "0.1.0",
 		Homepage: "https://github.com/iopipe/iopipe-go#logger-plugin",
 		Enabled:  p.Enabled(),
+		Uploads:  p.uploads,
 	}
 }
 
@@ -47,48 +49,49 @@ func (p *loggerPlugin) PreSetup(agent *Agent) {
 func (p *loggerPlugin) PostSetup(agent *Agent)                              {}
 func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
 func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
-func (p *loggerPlugin) PreReport(report *Report)                            {}
 
-func (p *loggerPlugin) PostReport(report *Report) {
-	report.agent.AddWorker(func() {
-		defer p.proxyWriter.Reset()
+func (p *loggerPlugin) PreReport(report *Report) {
+	defer p.proxyWriter.Reset()
 
-		var (
-			err            error
-			networkTimeout = 1 * time.Second
-		)
+	var (
+		err            error
+		networkTimeout = 1 * time.Second
+	)
 
-		signedRequest, err := GetSignedRequest(report, ".log")
-		if err != nil {
-			report.agent.log.Error(err)
-			return
-		}
+	signedRequest, err := GetSignedRequest(report, ".log")
+	if err != nil {
+		report.agent.log.Error(err)
+		return
+	}
 
-		tr := &http.Transport{
-			DisableKeepAlives: false,
-			MaxIdleConns:      1, // is this equivalent to the maxCachedSessions in the js implementation
-		}
-		httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
+	tr := &http.Transport{
+		DisableKeepAlives: false,
+		MaxIdleConns:      1, // is this equivalent to the maxCachedSessions in the js implementation
+	}
+	httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
 
-		req, err := http.NewRequest("PUT", signedRequest.SignedRequest, p.proxyWriter)
-		if err != nil {
-			report.agent.log.Error(err)
-			return
-		}
+	req, err := http.NewRequest("PUT", signedRequest.SignedRequest, p.proxyWriter)
+	if err != nil {
+		report.agent.log.Error(err)
+		return
+	}
 
-		res, err := httpsClient.Do(req)
-		if err != nil {
-			report.agent.log.Error(err)
-			return
-		}
+	res, err := httpsClient.Do(req)
+	if err != nil {
+		report.agent.log.Error(err)
+		return
+	}
 
-		report.agent.log.Debug("Log Data Upload Status: ", res.StatusCode)
+	report.agent.log.Debug("Log Data Upload Status: ", res.StatusCode)
 
-		defer res.Body.Close()
-		bodyBytes, err := ioutil.ReadAll(res.Body)
-		report.agent.log.Debug("Log Data Upload Response: ", string(bodyBytes))
-	})
+	defer res.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	report.agent.log.Debug("Log Data Upload Response: ", string(bodyBytes))
+
+	p.uploads = append(p.uploads, signedRequest.JWTAccess)
 }
+
+func (p *loggerPlugin) PostReport(report *Report) {}
 
 // LoggerPlugin loads the logger plugin
 func LoggerPlugin(config LoggerPluginConfig) PluginInstantiator {

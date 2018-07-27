@@ -35,10 +35,6 @@ func NewHandlerWrapper(handler interface{}, agent *Agent) *HandlerWrapper {
 
 // Invoke invokes the wrapped handler, handling panics and timeouts
 func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (response interface{}, err error) {
-	if hw.agent != nil && hw.agent.waitGroup != nil {
-		defer hw.agent.waitGroup.Wait()
-	}
-
 	lc, _ := lambdacontext.FromContext(ctx)
 	hw.lambdaContext = lc
 

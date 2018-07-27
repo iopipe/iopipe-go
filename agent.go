@@ -24,9 +24,8 @@ type Config struct {
 // Agent is the IOpipe instance
 type Agent struct {
 	*Config
-	log       *log.Logger
-	plugins   []Plugin
-	waitGroup *sync.WaitGroup
+	log     *log.Logger
+	plugins []Plugin
 }
 
 var (
@@ -53,9 +52,8 @@ func NewAgent(config Config) *Agent {
 	}
 
 	a := &Agent{
-		log:       NewLogger(),
-		plugins:   plugins,
-		waitGroup: &sync.WaitGroup{},
+		log:     NewLogger(),
+		plugins: plugins,
 	}
 
 	a.preSetup()
@@ -173,23 +171,6 @@ func (a *Agent) postSetup() {
 	}
 
 	wg.Wait()
-}
-
-// AddWorker adds a goroutine to the wait group
-func (a *Agent) AddWorker(wf func()) {
-	if wf == nil {
-		return
-	}
-
-	a.waitGroup.Add(1)
-	go func() {
-		defer a.waitGroup.Done()
-		wf()
-	}()
-}
-
-func (a *Agent) waitForWorkers() {
-	a.waitGroup.Wait()
 }
 
 // wrapHandler decorates the handler with the handler wrapper

@@ -7,10 +7,11 @@ type PluginInstantiator func() Plugin
 
 // PluginMeta is meta data about the plugin
 type PluginMeta struct {
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	Homepage string `json:"homepage"`
-	Enabled  bool   `json:"enabled"`
+	Name     string   `json:"name"`
+	Version  string   `json:"version"`
+	Homepage string   `json:"homepage"`
+	Enabled  bool     `json:"enabled"`
+	Uploads  []string `json:"uploads"`
 }
 
 // Plugin is the interface a plugin should implement
