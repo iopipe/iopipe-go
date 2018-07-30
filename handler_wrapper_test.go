@@ -46,6 +46,11 @@ func TestHandlerWrapper_Error(t *testing.T) {
 			So(r.Errors, ShouldResemble, &struct{}{})
 			hw.Error(fmt.Errorf("Whoops"))
 			So(r.Errors, ShouldHaveSameTypeAs, &InvocationError{})
+
+			Convey("An error label is added to report", func() {
+				_, exists := hw.report.labels["@iopipe/error"]
+				So(exists, ShouldBeTrue)
+			})
 		})
 	})
 }
@@ -150,6 +155,11 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 				hw.Invoke(expectedContext, expectedPayload)
 			}, ShouldPanic)
 			So(actualMessage, ShouldEqual, fmt.Sprintf("meow-%d", expectedResponse))
+
+			Convey("An error label is added to report", func() {
+				_, exists := hw.report.labels["@iopipe/error"]
+				So(exists, ShouldBeTrue)
+			})
 		})
 
 		Convey("Report deadline subtracts nothing when timeWindow not set", func() {
@@ -217,6 +227,11 @@ func TestHandlerWrapper_Invoke(t *testing.T) {
 			hw.Invoke(deadlineContext, expectedPayload)
 
 			So(actualMessage, ShouldEqual, "Timeout Exceeded")
+
+			Convey("A timeout label is added to report", func() {
+				_, exists := hw.report.labels["@iopipe/timeout"]
+				So(exists, ShouldBeTrue)
+			})
 		})
 
 		Convey("Unset deadline results no timeout regardless of timeOutWindow", func() {
@@ -323,6 +338,11 @@ func TestHandlerWrapper_Metric(t *testing.T) {
 			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
 			hw.Metric("foo", "bar")
 			So(len(hw.report.CustomMetrics), ShouldEqual, 1)
+
+			Convey("A metrics label is added to report", func() {
+				_, exists := hw.report.labels["@iopipe/metrics"]
+				So(exists, ShouldBeTrue)
+			})
 		})
 
 		Convey("Add a custom numeric metric to the report", func() {
@@ -332,6 +352,11 @@ func TestHandlerWrapper_Metric(t *testing.T) {
 			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
 			hw.Metric("meaning of life", 42)
 			So(len(hw.report.CustomMetrics), ShouldEqual, 1)
+
+			Convey("A metrics label is added to report", func() {
+				_, exists := hw.report.labels["@iopipe/metrics"]
+				So(exists, ShouldBeTrue)
+			})
 		})
 
 		Convey("Does not add metric if name is too long", func() {

@@ -46,9 +46,16 @@ func (p *loggerPlugin) PreSetup(agent *Agent) {
 	agent.log.Out = p.proxyWriter
 }
 
-func (p *loggerPlugin) PostSetup(agent *Agent)                              {}
-func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
-func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
+func (p *loggerPlugin) PostSetup(agent *Agent)                             {}
+func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{}) {}
+
+func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {
+	context, _ := FromContext(ctx)
+
+	if p.proxyWriter.buffer.Len() > 0 {
+		context.IOpipe.Label("@iopipe/plugin-logger")
+	}
+}
 
 func (p *loggerPlugin) PreReport(report *Report) {
 	defer p.proxyWriter.Reset()
@@ -57,6 +64,11 @@ func (p *loggerPlugin) PreReport(report *Report) {
 		err            error
 		networkTimeout = 1 * time.Second
 	)
+
+	if p.proxyWriter.buffer.Len() == 0 {
+		report.agent.log.Debug("No log messages to upload, skipping")
+		return
+	}
 
 	signedRequest, err := GetSignedRequest(report, ".log")
 	if err != nil {

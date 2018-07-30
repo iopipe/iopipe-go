@@ -58,6 +58,11 @@ func TestLoggerPlugin_LoggerPlugin(t *testing.T) {
 		Convey("Logger plugin invoke hooks fired", func() {
 			ctx := context.Background()
 			hw.Invoke(ctx, nil)
+
+			Convey("A loger label is added to report", func() {
+				_, exists := hw.report.labels["@iopipe/plugin-logger"]
+				So(exists, ShouldBeTrue)
+			})
 		})
 	})
 }
