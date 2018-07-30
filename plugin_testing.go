@@ -19,23 +19,11 @@ type testPlugin struct {
 
 func (p *testPlugin) Meta() *PluginMeta {
 	return &PluginMeta{
-		Name:     p.Name(),
-		Version:  p.Version(),
-		Homepage: p.Homepage(),
+		Name:     "@iopipe/test-plugin",
+		Version:  "0.1.0",
+		Homepage: "https://github.com/iopipe/iopipe-go",
 		Enabled:  p.Enabled(),
 	}
-}
-
-func (p *testPlugin) Name() string {
-	return "test-plugin"
-}
-
-func (p *testPlugin) Version() string {
-	return "0.1.0"
-}
-
-func (p *testPlugin) Homepage() string {
-	return "https://github.com/iopipe/iopipe-go"
 }
 
 func (p *testPlugin) Enabled() bool {

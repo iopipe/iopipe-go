@@ -28,8 +28,8 @@ type Report struct {
 	Errors        interface{}        `json:"errors"`
 	CustomMetrics []CustomMetric     `json:"custom_metrics"`
 	labels        map[string]struct{}
-	Labels        []string      `json:"labels"`
-	Plugins       []interface{} `json:"plugins"`
+	Labels        []string     `json:"labels"`
+	Plugins       []PluginMeta `json:"plugins"`
 }
 
 // ReportAWS contains AWS invocation details
@@ -159,10 +159,7 @@ func NewReport(handler *HandlerWrapper) *Report {
 		}
 	}
 
-	pluginsMeta := make([]interface{}, len(agent.plugins))
-	for index, plugin := range agent.plugins {
-		pluginsMeta[index] = plugin.Meta()
-	}
+	pluginsMeta := make([]PluginMeta, 0)
 
 	token := ""
 	if agent != nil && agent.Token != nil {
@@ -242,6 +239,11 @@ func (r *Report) prepare(err error) {
 		r.Labels = append(r.Labels, label)
 	}
 
+	r.Plugins = make([]PluginMeta, len(r.agent.plugins))
+	for index, plugin := range r.agent.plugins {
+		r.Plugins[index] = *plugin.Meta()
+	}
+
 	statEnd := readPIDStat()
 	r.Environment.OS.Linux.PID.Self.Stat.Cstime = statEnd.cstime
 	r.Environment.OS.Linux.PID.Self.Stat.Cutime = statEnd.cutime
@@ -295,7 +297,7 @@ func (r *Report) send() {
 		err := r.agent.Reporter(r)
 
 		if err != nil {
-			logger.Debug("Reporting error: ", err)
+			r.agent.log.Debug("Reporting error: ", err)
 		}
 	}
 

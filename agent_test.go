@@ -130,7 +130,7 @@ func TestAgent_NewAgent(t *testing.T) {
 
 	Convey("An agent with plugins should initialize them", t, func() {
 		agentWithPlugin := NewAgent(Config{
-			PluginInstantiators: []PluginInstantiator{
+			Plugins: []PluginInstantiator{
 				TestPlugin(TestPluginConfig{}),
 			},
 		})

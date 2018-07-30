@@ -56,6 +56,10 @@ functions:
     events:
       - schedule: rate(10 minutes)
     handler: bin/labels
+  logging:
+    events:
+      - schedule: rate(10 minutes)
+    handler: bin/logging
   metrics:
     events:
       - schedule: rate(10 minutes)

@@ -1,17 +1,12 @@
 package iopipe
 
 import (
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
-var logger *log.Logger
-
-func init() {
-	logger = log.New()
-
-	logger.SetLevel(log.InfoLevel)
-}
-
-func enableDebugMode() {
-	logger.SetLevel(log.DebugLevel)
+// NewLogger returns a new logger with default config
+func NewLogger() *logrus.Logger {
+	logger := logrus.New()
+	logger.SetLevel(logrus.InfoLevel)
+	return logger
 }
