@@ -45,7 +45,7 @@ func GetSignerURL(region string) string {
 		return fmt.Sprintf("https://signer.%s.iopipe.com/", region)
 	}
 
-	return "https://signer.us-east-1.iopipe.com/"
+	return "https://signer.us-west-2.iopipe.com/"
 }
 
 // GetSignedRequest returns a signed request for uploading files to IOpipe
