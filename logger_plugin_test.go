@@ -59,7 +59,7 @@ func TestLoggerPlugin_LoggerPlugin(t *testing.T) {
 			ctx := context.Background()
 			hw.Invoke(ctx, nil)
 
-			Convey("A loger label is added to report", func() {
+			Convey("A logger label is added to report", func() {
 				_, exists := hw.report.labels["@iopipe/plugin-logger"]
 				So(exists, ShouldBeTrue)
 			})

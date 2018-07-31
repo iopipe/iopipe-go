@@ -345,6 +345,20 @@ func TestHandlerWrapper_Metric(t *testing.T) {
 			})
 		})
 
+		Convey("Add a namespaced custom string metric to the report", func() {
+			r := NewReport(hw)
+			hw.report = r
+
+			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
+			hw.Metric("@iopipe/foo", "bar")
+			So(len(hw.report.CustomMetrics), ShouldEqual, 1)
+
+			Convey("A metrics label is not added to report", func() {
+				_, exists := hw.report.labels["@iopipe/metrics"]
+				So(exists, ShouldBeFalse)
+			})
+		})
+
 		Convey("Add a custom numeric metric to the report", func() {
 			r := NewReport(hw)
 			hw.report = r
@@ -356,6 +370,20 @@ func TestHandlerWrapper_Metric(t *testing.T) {
 			Convey("A metrics label is added to report", func() {
 				_, exists := hw.report.labels["@iopipe/metrics"]
 				So(exists, ShouldBeTrue)
+			})
+		})
+
+		Convey("Add a namespaced numeric metric to the report", func() {
+			r := NewReport(hw)
+			hw.report = r
+
+			So(len(hw.report.CustomMetrics), ShouldEqual, 0)
+			hw.Metric("@iopipe/foo", 42)
+			So(len(hw.report.CustomMetrics), ShouldEqual, 1)
+
+			Convey("A metrics label is not added to report", func() {
+				_, exists := hw.report.labels["@iopipe/metrics"]
+				So(exists, ShouldBeFalse)
 			})
 		})
 
