@@ -3,6 +3,7 @@ package iopipe
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -160,13 +161,19 @@ func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 
 	s := coerceString(value)
 	if s != nil {
-		hw.Label("@iopipe/metrics")
+		if !strings.HasPrefix(name, "@iopipe") {
+			hw.Label("@iopipe/metrics")
+		}
+
 		hw.report.CustomMetrics = append(hw.report.CustomMetrics, CustomMetric{Name: name, S: s})
 	}
 
 	n := coerceNumeric(value)
 	if n != nil {
-		hw.Label("@iopipe/metrics")
+		if !strings.HasPrefix(name, "@iopipe") {
+			hw.Label("@iopipe/metrics")
+		}
+
 		hw.report.CustomMetrics = append(hw.report.CustomMetrics, CustomMetric{Name: name, N: n})
 	}
 }
