@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -146,6 +147,7 @@ func (f JSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 // ProxyWriter proxies stderr and writes logs to buffer
 type ProxyWriter struct {
 	buffer   *bytes.Buffer
+	mutex    sync.RWMutex
 	proxyOut io.Writer
 }
 
@@ -157,20 +159,35 @@ func NewProxyWriter() *ProxyWriter {
 	}
 }
 
+// Len returns the size of the memory buffer
 func (w *ProxyWriter) Len() int {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	return w.buffer.Len()
 }
 
+// Read reads from the memory buffer
 func (w *ProxyWriter) Read(p []byte) (int, error) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	return w.buffer.Read(p)
 }
 
 // Reset resets the memory buffer
 func (w *ProxyWriter) Reset() {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	w.buffer.Reset()
 }
 
+// Write writes bytes to the buffer
 func (w *ProxyWriter) Write(p []byte) (int, error) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	w.buffer.Write(p)
 
 	return w.proxyOut.Write(p)
