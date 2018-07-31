@@ -52,7 +52,7 @@ func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{}) {}
 func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {
 	context, _ := FromContext(ctx)
 
-	if p.proxyWriter.buffer.Len() > 0 {
+	if p.proxyWriter.Len() > 0 {
 		context.IOpipe.Label("@iopipe/plugin-logger")
 	}
 }
@@ -65,7 +65,7 @@ func (p *loggerPlugin) PreReport(report *Report) {
 		networkTimeout = 1 * time.Second
 	)
 
-	if p.proxyWriter.buffer.Len() == 0 {
+	if p.proxyWriter.Len() == 0 {
 		report.agent.log.Debug("No log messages to upload, skipping")
 		return
 	}
@@ -155,6 +155,10 @@ func NewProxyWriter() *ProxyWriter {
 		buffer:   &bytes.Buffer{},
 		proxyOut: os.Stderr,
 	}
+}
+
+func (w *ProxyWriter) Len() int {
+	return w.buffer.Len()
 }
 
 func (w *ProxyWriter) Read(p []byte) (int, error) {

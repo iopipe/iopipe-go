@@ -12,6 +12,7 @@ import (
 // Report contains an IOpipe report
 type Report struct {
 	agent     *Agent
+	mutex     sync.Mutex
 	sent      bool
 	startTime time.Time
 
@@ -227,6 +228,9 @@ func NewReport(handler *HandlerWrapper) *Report {
 
 // prepare prepares an IOpipe report to be sent
 func (r *Report) prepare(err error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	endTime := time.Now()
 	r.TimestampEnd = int(endTime.UnixNano() / 1e6)
 	r.Duration = int(endTime.Sub(r.startTime).Nanoseconds())
@@ -285,6 +289,9 @@ func (r *Report) prepare(err error) {
 
 // send sends the report to IOpipe
 func (r *Report) send() {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	if r.sent {
 		return
 	}
