@@ -14,7 +14,7 @@ import (
 
 func TestSigner_GetSignerURL(t *testing.T) {
 	regions := []Region{
-		Region{Region: "", URL: "https://signer.us-east-1.iopipe.com/"},
+		Region{Region: "", URL: "https://signer.us-west-2.iopipe.com/"},
 		Region{Region: "ap-northeast-1", URL: "https://signer.ap-northeast-1.iopipe.com/"},
 		Region{Region: "ap-southeast-2", URL: "https://signer.ap-southeast-2.iopipe.com/"},
 		Region{Region: "eu-west-1", URL: "https://signer.eu-west-1.iopipe.com/"},
