@@ -3,6 +3,7 @@ package iopipe
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -49,6 +50,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 	// Handle and report a panic if it occurs
 	defer func() {
 		if panicErr := recover(); panicErr != nil {
+			hw.Label("@iopipe/error")
 			hw.report.prepare(NewPanicInvocationError(panicErr))
 			hw.report.send()
 			panic(panicErr)
@@ -84,6 +86,7 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 		// We're within the timeout window
 		case <-timeoutChannel:
 			hw.Log.Debug("Function is about to timeout, sending report")
+			hw.Label("@iopipe/timeout")
 			hw.report.prepare(fmt.Errorf("Timeout Exceeded"))
 			hw.report.send()
 			return
@@ -94,7 +97,15 @@ func (hw *HandlerWrapper) Invoke(ctx context.Context, payload interface{}) (resp
 
 	response, err = hw.wrappedHandler(ctx, payload)
 
+	if coldStart {
+		hw.Label("@iopipe/coldstart")
+	}
+
 	coldStart = false
+
+	if err != nil {
+		hw.Label("@iopipe/error")
+	}
 
 	hw.postInvoke(ctx, payload)
 
@@ -113,6 +124,7 @@ func (hw *HandlerWrapper) Error(err error) {
 		return
 	}
 
+	hw.Label("@iopipe/error")
 	hw.report.prepare(err)
 	hw.report.send()
 }
@@ -149,11 +161,19 @@ func (hw *HandlerWrapper) Metric(name string, value interface{}) {
 
 	s := coerceString(value)
 	if s != nil {
+		if !strings.HasPrefix(name, "@iopipe") {
+			hw.Label("@iopipe/metrics")
+		}
+
 		hw.report.CustomMetrics = append(hw.report.CustomMetrics, CustomMetric{Name: name, S: s})
 	}
 
 	n := coerceNumeric(value)
 	if n != nil {
+		if !strings.HasPrefix(name, "@iopipe") {
+			hw.Label("@iopipe/metrics")
+		}
+
 		hw.report.CustomMetrics = append(hw.report.CustomMetrics, CustomMetric{Name: name, N: n})
 	}
 }

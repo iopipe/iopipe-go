@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -46,9 +47,16 @@ func (p *loggerPlugin) PreSetup(agent *Agent) {
 	agent.log.Out = p.proxyWriter
 }
 
-func (p *loggerPlugin) PostSetup(agent *Agent)                              {}
-func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{})  {}
-func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {}
+func (p *loggerPlugin) PostSetup(agent *Agent)                             {}
+func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{}) {}
+
+func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {
+	context, _ := FromContext(ctx)
+
+	if p.proxyWriter.Len() > 0 {
+		context.IOpipe.Label("@iopipe/plugin-logger")
+	}
+}
 
 func (p *loggerPlugin) PreReport(report *Report) {
 	defer p.proxyWriter.Reset()
@@ -57,6 +65,11 @@ func (p *loggerPlugin) PreReport(report *Report) {
 		err            error
 		networkTimeout = 1 * time.Second
 	)
+
+	if p.proxyWriter.Len() == 0 {
+		report.agent.log.Debug("No log messages to upload, skipping")
+		return
+	}
 
 	signedRequest, err := GetSignedRequest(report, ".log")
 	if err != nil {
@@ -134,6 +147,7 @@ func (f JSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 // ProxyWriter proxies stderr and writes logs to buffer
 type ProxyWriter struct {
 	buffer   *bytes.Buffer
+	mutex    sync.RWMutex
 	proxyOut io.Writer
 }
 
@@ -145,16 +159,35 @@ func NewProxyWriter() *ProxyWriter {
 	}
 }
 
+// Len returns the size of the memory buffer
+func (w *ProxyWriter) Len() int {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
+	return w.buffer.Len()
+}
+
+// Read reads from the memory buffer
 func (w *ProxyWriter) Read(p []byte) (int, error) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	return w.buffer.Read(p)
 }
 
 // Reset resets the memory buffer
 func (w *ProxyWriter) Reset() {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	w.buffer.Reset()
 }
 
+// Write writes bytes to the buffer
 func (w *ProxyWriter) Write(p []byte) (int, error) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+
 	w.buffer.Write(p)
 
 	return w.proxyOut.Write(p)
