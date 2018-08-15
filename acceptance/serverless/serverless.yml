@@ -26,54 +26,54 @@ functions:
     environment:
       API_GATEWAY_URL: ${env:API_GATEWAY_URL}
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/api-trigger
   baseline:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/baseline
   baseline-coldstart:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/baseline-coldstart
   coldstart:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/coldstart
   error:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/error
   event:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/event
   handled-error:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/handled-error
   labels:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/labels
   logging:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/logging
   metrics:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/metrics
   panic:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/panic
   success:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/success
   timeout:
     events:
-      - schedule: rate(10 minutes)
+      - schedule: rate(1 minute)
     handler: bin/timeout
     timeout: 1

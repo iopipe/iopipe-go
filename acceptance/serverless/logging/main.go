@@ -7,7 +7,12 @@ import (
 	"github.com/iopipe/iopipe-go"
 )
 
-var agent = iopipe.NewAgent(iopipe.Config{Debug: iopipe.True()})
+var agent = iopipe.NewAgent(iopipe.Config{
+	Debug: iopipe.True(),
+	Plugins: []iopipe.PluginInstantiator{
+		iopipe.LoggerPlugin(iopipe.LoggerPluginConfig{}),
+	},
+})
 
 func handler(ctx context.Context) (string, error) {
 	context, _ := iopipe.FromContext(ctx)
