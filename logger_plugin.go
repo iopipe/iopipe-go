@@ -73,7 +73,7 @@ func (p *loggerPlugin) PreReport(report *Report) {
 
 	signedRequest, err := GetSignedRequest(report, ".log")
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return
 	}
 
@@ -85,13 +85,13 @@ func (p *loggerPlugin) PreReport(report *Report) {
 
 	req, err := http.NewRequest("PUT", signedRequest.SignedRequest, p.proxyWriter)
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return
 	}
 
 	res, err := httpsClient.Do(req)
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return
 	}
 
