@@ -63,7 +63,7 @@ func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {
 func (p *loggerPlugin) PreReport(report *Report) {
 	var (
 		err            error
-		networkTimeout = 1 * time.Second
+		networkTimeout = 10 * time.Second
 	)
 
 	if p.proxyWriter.Len() == 0 {
