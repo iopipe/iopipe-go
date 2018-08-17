@@ -52,7 +52,7 @@ func GetSignerURL(region string) string {
 func GetSignedRequest(report *Report, extension string) (*SignerResponse, error) {
 	var (
 		err            error
-		networkTimeout = 1 * time.Second
+		networkTimeout = 10 * time.Second
 	)
 
 	tr := &http.Transport{
@@ -97,6 +97,11 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 	if err != nil {
 		report.agent.log.Error(err)
 		return nil, err
+	}
+
+	if res.StatusCode > 299 {
+		report.agent.log.Error("Response failed: %d %s", res.StatusCode, bodyBytes)
+		return nil, fmt.Errorf("Response failed: %d %s", res.StatusCode, bodyBytes)
 	}
 
 	var signerResponse *SignerResponse

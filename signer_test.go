@@ -32,35 +32,35 @@ func TestSigner_GetSignerURL(t *testing.T) {
 }
 
 func TestSigner_GetSignedRequest(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Content-Type", "application/json")
-
-		signerResponse := &SignerResponse{
-			JWTAccess:     "foobar",
-			SignedRequest: "https://some-url",
-			URL:           "https://some-url",
-		}
-		signerResponseJSONBytes, _ := json.Marshal(signerResponse)
-
-		fmt.Fprintln(res, string(signerResponseJSONBytes))
-	}))
-	defer ts.Close()
-
-	oldRegion := os.Getenv("AWS_REGION")
-	defer os.Setenv("AWS_REGION", oldRegion)
-
-	os.Setenv("AWS_REGION", "mock")
-	os.Setenv("MOCK_SERVER", ts.URL)
-
-	a := NewAgent(Config{})
-	lc := &lambdacontext.LambdaContext{
-		AwsRequestID:       "123",
-		InvokedFunctionArn: "Foo::Bar::Baz",
-	}
-	hw := &HandlerWrapper{agent: a, lambdaContext: lc}
-	r := NewReport(hw)
-
 	Convey("GetSignedRequest should return a signed request", t, func() {
+		ts := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			res.Header().Set("Content-Type", "application/json")
+
+			signerResponse := &SignerResponse{
+				JWTAccess:     "foobar",
+				SignedRequest: "https://some-url",
+				URL:           "https://some-url",
+			}
+			signerResponseJSONBytes, _ := json.Marshal(signerResponse)
+
+			fmt.Fprintln(res, string(signerResponseJSONBytes))
+		}))
+		defer ts.Close()
+
+		oldRegion := os.Getenv("AWS_REGION")
+		defer os.Setenv("AWS_REGION", oldRegion)
+
+		os.Setenv("AWS_REGION", "mock")
+		os.Setenv("MOCK_SERVER", ts.URL)
+
+		a := NewAgent(Config{})
+		lc := &lambdacontext.LambdaContext{
+			AwsRequestID:       "123",
+			InvokedFunctionArn: "Foo::Bar::Baz",
+		}
+		hw := &HandlerWrapper{agent: a, lambdaContext: lc}
+		r := NewReport(hw)
+
 		res, err := GetSignedRequest(r, ".txt")
 
 		So(err, ShouldBeNil)
