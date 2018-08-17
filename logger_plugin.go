@@ -47,8 +47,10 @@ func (p *loggerPlugin) PreSetup(agent *Agent) {
 	agent.log.Out = p.proxyWriter
 }
 
-func (p *loggerPlugin) PostSetup(agent *Agent)                             {}
-func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{}) {}
+func (p *loggerPlugin) PostSetup(agent *Agent) {}
+func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{}) {
+	p.proxyWriter.Reset()
+}
 
 func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {
 	context, _ := FromContext(ctx)
@@ -59,8 +61,6 @@ func (p *loggerPlugin) PostInvoke(ctx context.Context, payload interface{}) {
 }
 
 func (p *loggerPlugin) PreReport(report *Report) {
-	defer p.proxyWriter.Reset()
-
 	var (
 		err            error
 		networkTimeout = 1 * time.Second
