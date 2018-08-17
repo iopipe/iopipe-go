@@ -1,17 +1,21 @@
+defaults: &defaults
+  docker:
+    - image: circleci/golang:1-stretch
+  working_directory: /go/src/github.com/iopipe/iopipe-go
+  environment:
+    GOARCH: amd64
+    GOOS: linux
+    IOPIPE_DEBUG: ""
+    IOPIPE_ENABLED: ""
+    IOPIPE_TIMEOUT_WINDOW: ""
+    IOPIPE_TOKEN: ""
+    TEST_RESULTS: /tmp/test-results
+
 version: 2
+
 jobs:
   build:
-    docker:
-      - image: circleci/golang:1-stretch
-    working_directory: /go/src/github.com/iopipe/iopipe-go
-    environment:
-      GOARCH: amd64
-      GOOS: linux
-      IOPIPE_DEBUG: ""
-      IOPIPE_ENABLED: ""
-      IOPIPE_TIMEOUT_WINDOW: ""
-      IOPIPE_TOKEN: ""
-      TEST_RESULTS: /tmp/test-results
+    <<: *defaults
     steps:
       - checkout
       - run:
@@ -61,19 +65,10 @@ jobs:
           command: sudo npm install -g serverless
       - run:
           name: Build and deploy acceptance tests
-          command: cd acceptance/serverless && make build && sls deploy
+          command: cd acceptance/serverless && make build && sls deploy --force
 
   coverage:
-    docker:
-      - image: circleci/golang:1-stretch
-    working_directory: /go/src/github.com/iopipe/iopipe-go
-    environment:
-      GOARCH: amd64
-      GOOS: linux
-      IOPIPE_DEBUG: ""
-      IOPIPE_ENABLED: ""
-      IOPIPE_TIMEOUT_WINDOW: ""
-      IOPIPE_TOKEN: ""
+    <<: *defaults
     steps:
       - checkout
       - run:
