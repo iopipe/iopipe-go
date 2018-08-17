@@ -52,6 +52,9 @@ func TestLoggerPlugin_LoggerPlugin(t *testing.T) {
 		hw := NewHandlerWrapper(func(ctx context.Context, payload interface{}) (interface{}, error) {
 			context, _ := FromContext(ctx)
 			context.IOpipe.Log.Debug("Some debug message")
+			context.IOpipe.Log.Info("Some info message")
+			context.IOpipe.Log.Warning("Some warning message")
+			context.IOpipe.Log.Error("Some error message")
 			return nil, nil
 		}, a)
 

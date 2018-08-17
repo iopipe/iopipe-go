@@ -53,7 +53,7 @@ func TestSigner_GetSignedRequest(t *testing.T) {
 		os.Setenv("AWS_REGION", "mock")
 		os.Setenv("MOCK_SERVER", ts.URL)
 
-		a := NewAgent(Config{})
+		a := NewAgent(Config{Debug: True()})
 		lc := &lambdacontext.LambdaContext{
 			AwsRequestID:       "123",
 			InvokedFunctionArn: "Foo::Bar::Baz",
