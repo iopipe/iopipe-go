@@ -21,7 +21,7 @@ func handler(ctx context.Context) (string, error) {
 	context.IOpipe.Log.Info("I'm an info message")
 	context.IOpipe.Log.Warning("I'm a warning message")
 
-	return "Invocation successful", nil
+	return "Loggingsuccessful", nil
 }
 
 func main() {
