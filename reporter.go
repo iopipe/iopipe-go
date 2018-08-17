@@ -45,7 +45,7 @@ func sendReport(report *Report) error {
 	httpsClient := http.Client{Transport: tr, Timeout: networkTimeout}
 
 	reportJSONBytes, _ := json.Marshal(report) //.MarshalIndent(report, "", "  ")
-	report.agent.log.Debug(string(reportJSONBytes))
+	report.agent.log.Debug("Sending report:\n", string(reportJSONBytes))
 
 	uRL := getCollectorURL(os.Getenv("AWS_REGION"))
 	req, err := http.NewRequest("POST", uRL, bytes.NewReader(reportJSONBytes))
@@ -64,7 +64,7 @@ func sendReport(report *Report) error {
 	defer res.Body.Close()
 
 	resbody, err := ioutil.ReadAll(res.Body)
-	report.agent.log.Debug("body read from IOPIPE ", string(resbody))
+	report.agent.log.Debug("IOpipe response: ", string(resbody))
 
 	if err != nil {
 		return err

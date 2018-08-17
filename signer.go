@@ -52,7 +52,7 @@ func GetSignerURL(region string) string {
 func GetSignedRequest(report *Report, extension string) (*SignerResponse, error) {
 	var (
 		err            error
-		networkTimeout = 10 * time.Second
+		networkTimeout = 60 * time.Second
 	)
 
 	tr := &http.Transport{
@@ -77,7 +77,7 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 
 	req, err := http.NewRequest("POST", requestURL, bytes.NewReader(requestJSONBytes))
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return nil, err
 	}
 
@@ -86,7 +86,7 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 
 	res, err := httpsClient.Do(req)
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return nil, err
 	}
 
@@ -95,19 +95,19 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	report.agent.log.Debug("Signer response: ", string(bodyBytes))
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return nil, err
 	}
 
 	if res.StatusCode > 299 {
-		report.agent.log.Error("Response failed: %d %s", res.StatusCode, bodyBytes)
+		report.agent.log.Debug("Response failed: %d %s", res.StatusCode, bodyBytes)
 		return nil, fmt.Errorf("Response failed: %d %s", res.StatusCode, bodyBytes)
 	}
 
 	var signerResponse *SignerResponse
 	err = json.Unmarshal(bodyBytes, &signerResponse)
 	if err != nil {
-		report.agent.log.Error(err)
+		report.agent.log.Debug(err)
 		return nil, err
 	}
 
