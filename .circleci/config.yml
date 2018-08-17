@@ -55,7 +55,7 @@ jobs:
           command: curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
       - run:
           name: Install Node.js
-          command: sudo apt-get install -y nodejs
+          command: sudo apt-get update && sudo apt-get install -y nodejs
       - run:
           name: Install Serverless
           command: sudo npm install -g serverless
