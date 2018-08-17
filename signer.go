@@ -68,13 +68,16 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 		Timestamp: int(time.Now().UnixNano() / 1e6),
 		Extension: extension,
 	}
+
 	requestJSONBytes, _ := json.Marshal(signerRequest)
 	report.agent.log.Debug("Signer request: ", string(requestJSONBytes))
 
 	requestURL := GetSignerURL(os.Getenv("AWS_REGION"))
+	report.agent.log.Debug("Signer URL: ", requestURL)
 
 	req, err := http.NewRequest("POST", requestURL, bytes.NewReader(requestJSONBytes))
 	if err != nil {
+		report.agent.log.Error(err)
 		return nil, err
 	}
 
@@ -83,6 +86,7 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 
 	res, err := httpsClient.Do(req)
 	if err != nil {
+		report.agent.log.Error(err)
 		return nil, err
 	}
 
@@ -91,12 +95,14 @@ func GetSignedRequest(report *Report, extension string) (*SignerResponse, error)
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	report.agent.log.Debug("Signer response: ", string(bodyBytes))
 	if err != nil {
+		report.agent.log.Error(err)
 		return nil, err
 	}
 
 	var signerResponse *SignerResponse
 	err = json.Unmarshal(bodyBytes, &signerResponse)
 	if err != nil {
+		report.agent.log.Error(err)
 		return nil, err
 	}
 
