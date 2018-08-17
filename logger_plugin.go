@@ -38,7 +38,9 @@ func (p *loggerPlugin) Enabled() bool {
 	return true
 }
 
-func (p *loggerPlugin) PreSetup(agent *Agent) {
+func (p *loggerPlugin) PreSetup(agent *Agent) {}
+
+func (p *loggerPlugin) PostSetup(agent *Agent) {
 	if agent.log == nil {
 		agent.log = NewLogger()
 	}
@@ -47,7 +49,6 @@ func (p *loggerPlugin) PreSetup(agent *Agent) {
 	agent.log.Out = p.proxyWriter
 }
 
-func (p *loggerPlugin) PostSetup(agent *Agent) {}
 func (p *loggerPlugin) PreInvoke(ctx context.Context, payload interface{}) {
 	p.proxyWriter.Reset()
 }
