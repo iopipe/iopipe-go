@@ -162,16 +162,16 @@ func NewProxyWriter() *ProxyWriter {
 
 // Len returns the size of the memory buffer
 func (w *ProxyWriter) Len() int {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
 
 	return w.buffer.Len()
 }
 
 // Read reads from the memory buffer
 func (w *ProxyWriter) Read(p []byte) (int, error) {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
 
 	return w.buffer.Read(p)
 }
